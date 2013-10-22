@@ -1,0 +1,5 @@
+/cookbooks
+/Berksfile.lock
+/.vagrant
+.DS_Store
+/Vagrantfile

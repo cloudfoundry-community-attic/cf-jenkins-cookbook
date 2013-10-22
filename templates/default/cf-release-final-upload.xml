@@ -1,0 +1,121 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>Check for new final CF BOSH releases, upload to specified BOSH server, then trigger a deployment build.</description>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@1.5.0">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name></name>
+        <refspec></refspec>
+        <url>https://github.com/cloudfoundry/cf-release.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>release-candidate</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <disableSubmodules>false</disableSubmodules>
+    <recursiveSubmodules>false</recursiveSubmodules>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <authorOrCommitter>false</authorOrCommitter>
+    <clean>false</clean>
+    <wipeOutWorkspace>false</wipeOutWorkspace>
+    <pruneBranches>false</pruneBranches>
+    <remotePoll>false</remotePoll>
+    <ignoreNotifyCommit>false</ignoreNotifyCommit>
+    <useShallowClone>false</useShallowClone>
+    <buildChooser class="hudson.plugins.git.util.DefaultBuildChooser"/>
+    <gitTool>Default</gitTool>
+    <submoduleCfg class="list"/>
+    <relativeTargetDir></relativeTargetDir>
+    <reference></reference>
+    <excludedRegions></excludedRegions>
+    <excludedUsers></excludedUsers>
+    <gitConfigName></gitConfigName>
+    <gitConfigEmail></gitConfigEmail>
+    <skipTag>false</skipTag>
+    <includedRegions></includedRegions>
+    <scmName></scmName>
+  </scm>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <org.jenkinsci.plugins.scripttrigger.ScriptTrigger plugin="scripttrigger@0.31">
+      <spec>H * * * *</spec>
+      <labelRestriction>false</labelRestriction>
+      <enableConcurrentBuild>false</enableConcurrentBuild>
+      <script>cd $WORKSPACE 
+git fetch 
+RELEASES=`git diff ... origin --name-only --diff-filter=A releases/ | grep -P &quot;cf-[0-9]*.yml&quot;` 
+RELEASE_FILES=(${RELEASES//\n/ }) 
+LATEST_RELEASE=${RELEASE_FILES[${#RELEASE_FILES[@]} - 1]}
+echo $LATEST_RELEASE &gt; latest_release.txt</script>
+    </org.jenkinsci.plugins.scripttrigger.ScriptTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>LATEST_RELEASE_FILE=&quot;$WORKSPACE/latest_release.txt&quot;
+if [ -f $LATEST_RELEASE_FILE ]; 
+then
+  LATEST_RELEASE=`cat $LATEST_RELEASE_FILE`
+else
+  LATEST_RELEASE_GIT=`git rev-list --reverse --tags --max-count=1 releases/*.yml`
+  LATEST_RELEASE=`git diff-tree --no-commit-id --name-only -r $LATEST_RELEASE_GIT | grep -e &apos;releases\/cf.*.yml&apos;`
+fi
+
+bundle update
+
+bosh -n target <%= @vars['inner_bosh']['director_ip'] %>
+bosh -n login <%= @vars['inner_bosh']['user'] %> <%= @vars['inner_bosh']['pass'] %>
+
+bosh -n upload release $WORKSPACE/$LATEST_RELEASE
+
+cd $WORKSPACE
+RUBY_SCRIPT=&quot;data = YAML::load(STDIN.read); puts \&quot;#{data[&apos;name&apos;]} #{data[&apos;version&apos;]}\&quot;&quot; 
+RELEASE_PROPS=`cat $WORKSPACE/$LATEST_RELEASE | ruby -ryaml -e &quot;$RUBY_SCRIPT&quot;`
+read RELEASE_NAME RELEASE_VERSION &lt;&lt;&lt;$(echo $RELEASE_PROPS) 
+
+echo &quot;${RELEASE_NAME} ${RELEASE_VERSION}&quot; &gt; release_version.txt</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.tasks.ArtifactArchiver>
+      <artifacts>release_version.txt</artifacts>
+      <latestOnly>false</latestOnly>
+      <allowEmptyArchive>false</allowEmptyArchive>
+    </hudson.tasks.ArtifactArchiver>
+    <hudson.tasks.BuildTrigger>
+      <childProjects>cf-release-final-deploy</childProjects>
+      <threshold>
+        <name>SUCCESS</name>
+        <ordinal>0</ordinal>
+        <color>BLUE</color>
+        <completeBuild>true</completeBuild>
+      </threshold>
+    </hudson.tasks.BuildTrigger>
+  </publishers>
+  <buildWrappers>
+    <ruby-proxy-object>
+      <ruby-object ruby-class="Jenkins::Tasks::BuildWrapperProxy" pluginid="rbenv">
+        <object ruby-class="RbenvWrapper" pluginid="rbenv">
+          <ruby__build__repository pluginid="rbenv" ruby-class="String">https://github.com/sstephenson/ruby-build.git</ruby__build__repository>
+          <rbenv__root pluginid="rbenv" ruby-class="String">$HOME/.rbenv</rbenv__root>
+          <rbenv__revision pluginid="rbenv" ruby-class="String">master</rbenv__revision>
+          <rbenv__repository pluginid="rbenv" ruby-class="String">https://github.com/sstephenson/rbenv.git</rbenv__repository>
+          <ruby__build__revision pluginid="rbenv" ruby-class="String">master</ruby__build__revision>
+          <gem__list pluginid="rbenv" ruby-class="String">bundler,rake</gem__list>
+          <version pluginid="rbenv" ruby-class="String">1.9.3-p448</version>
+          <ignore__local__version ruby-class="FalseClass" pluginid="rbenv"/>
+        </object>
+        <pluginid pluginid="rbenv" ruby-class="String">rbenv</pluginid>
+      </ruby-object>
+    </ruby-proxy-object>
+  </buildWrappers>
+</project>

@@ -1,0 +1,87 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+
+  config.vm.hostname = "jenkins-cf"
+  config.vm.box = "precise64"
+
+  config.omnibus.chef_version = :latest
+  config.berkshelf.enabled = true
+
+  config.vm.network :private_network, ip: "192.168.33.190"
+
+  config.vm.provider :virtualbox do |vb, override|
+    override.vm.box_url = "http://files.vagrantup.com/precise64.box"
+    vb.customize ["modifyvm", :id, "--memory", "1024"]
+  end
+
+  config.vm.provider :vmware_fusion do |v, override|
+    v.vmx["memsize"] = "1024"
+    v.vmx["numvcpus"] = "2"
+    v.vmx["displayName"] = "jenkins-cf"
+    v.vmx["annotation"] = "Cloud Foundry v2 Jenkins Build Environment"
+    override.vm.box_url = "http://nitron-vagrant.s3-website-us-east-1.amazonaws.com/vagrant_ubuntu_12.04.3_amd64_vmware.box"
+  end
+
+  config.vm.provider :openstack do |os, override|
+    override.vm.box = "dummy"
+    override.ssh.private_key_path = "/path/to/private_key"
+    override.vm.box_url = "https://github.com/cloudbau/vagrant-openstack-plugin/raw/master/dummy.box"
+ 
+    os.username     = "#{ENV['OS_USERNAME']}"          # e.g. "#{ENV['OS_USERNAME']}"
+    os.api_key      = "#{ENV['OS_PASSWORD']}"           # e.g. "#{ENV['OS_PASSWORD']}"
+    os.flavor       = /m1.medium/                # Regex or String
+    os.image        = /precise64-cloud/                 # http://cloud-images.ubuntu.com/releases/12.04.3/release/ubuntu-12.04-server-cloudimg-amd64-disk1.img
+    os.endpoint     = "#{ENV['OS_AUTH_URL']}"      # e.g. "#{ENV['OS_AUTH_URL']}/tokens"
+    os.keypair_name = "<keypair>"      # as stored in Nova
+    os.ssh_username = "ubuntu"           # login for the VM
+
+    #os.metadata  = {"key" => "value"}                      # optional
+    os.user_data = "#cloud-config\nmanage_etc_hosts: True" 
+    os.network            = "cloud"     # needed by neutron to ensure jenkins is spun up with a single NIC on the 'cloud' network
+    #os.address_id         = "YOUR ADDRESS ID"              # optional (`network` above has higher precedence)
+    #os.scheduler_hints    = {
+    #    :cell => 'australia'
+    #}                                          # optional
+    #os.availability_zone  = "az0001"           # optional
+    #os.security_groups    = ['ssh', 'http']    # optional
+    os.tenant             = "#{ENV['OS_TENANT']}"
+    os.floating_ip        = "xxx.xxx.xxx.xxx"      # optional (The floating IP to assign for this instance)
+  end
+
+  config.vm.provision :chef_solo do |chef|
+     chef.add_recipe "jenkins-cf"
+
+     chef.json = { 
+      :jenkins_cf => {
+        :outer_bosh => {
+          :director_ip => 'xxx.xxx.xxx.xxx'
+        },
+        :inner_bosh => {
+          :director_ip => 'xxx.xxx.xxx.xxx',
+          :powerdns_ip => 'xxx.xxx.xxx.xxx',
+          :net_id => 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxx'
+        },
+        :cloud_controller => {
+          :ip => 'xxx.xxx.xxx.xxx',
+          :root_domain => 'root.domain'
+        },
+        :openstack => {
+          :auth_url => "#{ENV['OS_AUTH_URL']}",
+          :user => "#{ENV['OS_USERNAME']}",
+          :api_key => "#{ENV['OS_PASSWORD']}",
+          :tenant => "#{ENV['OS_TENANT']}"
+        },
+        :git => {
+          :user => "Jenkins - Cloud Foundry v2",
+          :email => "jenkins-cf@cf.com",
+          :known_hosts => [ 'git.blah.com' ]
+        }
+      }
+     }
+
+     # chef.log_level = :debug
+  end
+
+end

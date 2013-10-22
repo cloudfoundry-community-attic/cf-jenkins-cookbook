@@ -1,0 +1,105 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>Check for new stemcell versions, and trigger a CF deployment if a new one is found&#xd;
+</description>
+  <logRotator class="hudson.tasks.LogRotator">
+    <daysToKeep>-1</daysToKeep>
+    <numToKeep>3</numToKeep>
+    <artifactDaysToKeep>-1</artifactDaysToKeep>
+    <artifactNumToKeep>-1</artifactNumToKeep>
+  </logRotator>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <org.jenkinsci.plugins.scripttrigger.ScriptTrigger plugin="scripttrigger@0.31">
+      <spec>H * * * *</spec>
+      <labelRestriction>false</labelRestriction>
+      <enableConcurrentBuild>false</enableConcurrentBuild>
+      <script>PATH=~/.rbenv/bin:~/.rbenv/shims:$PATH
+PREV_STEMCELL_DATE=`curl $JOB_URL/lastSuccessfulBuild/artifact/stemcell_date_added.txt`
+STEMCELL_BASE_URL=<%= @vars['stemcell_base_url'] %>
+STEMCELL_SEARCH=<%= @vars['stemcell'] %>
+STEMCELL_DATA=`curl &quot;${STEMCELL_BASE_URL}/?prefix=${STEMCELL_SEARCH}&quot; 2&gt;/dev/null`
+CURR_STEMCELL_DATE=`echo $STEMCELL_DATA | sed &apos;s/.*&lt;LastModified&gt;\([^&lt;]*\)&lt;\/LastModified&gt;.*/\1/&apos; | tr -d &apos; &apos;`
+
+DATE_DIFF_RB=&quot;require(&apos;time&apos;); (Time.parse(ARGV[0]) &gt;= Time.parse(ARGV[1])) ? Process.exit(1) : Process.exit(0)&quot;
+
+ruby -e &quot;$DATE_DIFF_RB&quot; ${PREV_STEMCELL_DATE} ${CURR_STEMCELL_DATE}</script>
+    </org.jenkinsci.plugins.scripttrigger.ScriptTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>
+STEMCELL_BASE_URL=<%= @vars['stemcell_base_url'] %>
+STEMCELL_SEARCH=<%= @vars['stemcell'] %>
+STEMCELL_DATA=`curl &quot;${STEMCELL_BASE_URL}/?prefix=${STEMCELL_SEARCH}&quot; 2&gt;/dev/null`
+STEMCELL_DATE_ADDED=`echo $STEMCELL_DATA | sed &apos;s/.*&lt;LastModified&gt;\([^&lt;]*\)&lt;\/LastModified&gt;.*/\1/&apos; | tr -d &apos; &apos;`
+STEMCELL_URL=${STEMCELL_BASE_URL}/${STEMCELL_SEARCH}
+STEMCELL_TMP_DIR=/tmp/stemcell-dl-${STEMCELL_DATE_ADDED}
+
+rm -rf /tmp/stemcell-dl-*
+mkdir -p $STEMCELL_TMP_DIR
+cd $STEMCELL_TMP_DIR
+wget $STEMCELL_URL -O $STEMCELL_TMP_DIR/stemcell.tgz
+tar -zxvf $STEMCELL_TMP_DIR/stemcell.tgz -C $STEMCELL_TMP_DIR
+
+gem install bosh_cli --pre
+
+for BOSH_TARGET in "<%= @vars['inner_bosh']['director_ip'] %>" "<%= @vars['outer_bosh']['director_ip'] %>"
+do
+  if bosh -n target $BOSH_TARGET; then
+    bosh -n login $BOSH_USER $BOSH_PASS
+    bosh -n upload stemcell $STEMCELL_TMP_DIR/stemcell.tgz
+  fi
+done
+
+RUBY_SCRIPT=&quot;data = YAML::load(STDIN.read); puts \&quot;#{data[&apos;name&apos;]} #{data[&apos;version&apos;]}\&quot;&quot;
+STEMCELL_PROPS=`cat stemcell.MF | ruby -ryaml -e &quot;$RUBY_SCRIPT&quot;`
+
+cd $WORKSPACE
+echo ${STEMCELL_TMP_DIR}/stemcell.tgz &gt; stemcell_tgz.txt
+echo $STEMCELL_DATE_ADDED &gt; stemcell_date_added.txt
+echo $STEMCELL_PROPS &gt; stemcell_version.txt</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.tasks.ArtifactArchiver>
+      <artifacts>stemcell_date_added.txt, stemcell_version.txt, stemcell_tgz.txt</artifacts>
+      <latestOnly>false</latestOnly>
+      <allowEmptyArchive>false</allowEmptyArchive>
+    </hudson.tasks.ArtifactArchiver>
+    <hudson.tasks.BuildTrigger>
+      <childProjects>cf-release-final-deploy, bosh-release-deploy</childProjects>
+      <threshold>
+        <name>SUCCESS</name>
+        <ordinal>0</ordinal>
+        <color>BLUE</color>
+        <completeBuild>true</completeBuild>
+      </threshold>
+    </hudson.tasks.BuildTrigger>
+  </publishers>
+  <buildWrappers>
+    <ruby-proxy-object>
+      <ruby-object ruby-class="Jenkins::Tasks::BuildWrapperProxy" pluginid="rbenv">
+        <object ruby-class="RbenvWrapper" pluginid="rbenv">
+          <ruby__build__repository pluginid="rbenv" ruby-class="String">https://github.com/sstephenson/ruby-build.git</ruby__build__repository>
+          <rbenv__root pluginid="rbenv" ruby-class="String">$HOME/.rbenv</rbenv__root>
+          <rbenv__revision pluginid="rbenv" ruby-class="String">master</rbenv__revision>
+          <rbenv__repository pluginid="rbenv" ruby-class="String">https://github.com/sstephenson/rbenv.git</rbenv__repository>
+          <ruby__build__revision pluginid="rbenv" ruby-class="String">master</ruby__build__revision>
+          <gem__list pluginid="rbenv" ruby-class="String">bundler,rake</gem__list>
+          <version pluginid="rbenv" ruby-class="String">1.9.3-p448</version>
+          <ignore__local__version ruby-class="FalseClass" pluginid="rbenv"/>
+        </object>
+        <pluginid pluginid="rbenv" ruby-class="String">rbenv</pluginid>
+      </ruby-object>
+    </ruby-proxy-object>
+  </buildWrappers>
+</project>

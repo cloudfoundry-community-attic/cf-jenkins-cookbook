@@ -1,0 +1,119 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@1.5.0">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name></name>
+        <refspec></refspec>
+        <url><%= @vars['bosh_manifest_git_repo'] %></url>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>master</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <disableSubmodules>false</disableSubmodules>
+    <recursiveSubmodules>false</recursiveSubmodules>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <authorOrCommitter>false</authorOrCommitter>
+    <clean>false</clean>
+    <wipeOutWorkspace>false</wipeOutWorkspace>
+    <pruneBranches>false</pruneBranches>
+    <remotePoll>false</remotePoll>
+    <ignoreNotifyCommit>false</ignoreNotifyCommit>
+    <useShallowClone>false</useShallowClone>
+    <buildChooser class="hudson.plugins.git.util.DefaultBuildChooser"/>
+    <gitTool>Default</gitTool>
+    <submoduleCfg class="list"/>
+    <relativeTargetDir></relativeTargetDir>
+    <reference></reference>
+    <excludedRegions></excludedRegions>
+    <excludedUsers></excludedUsers>
+    <gitConfigName></gitConfigName>
+    <gitConfigEmail></gitConfigEmail>
+    <skipTag>false</skipTag>
+    <includedRegions></includedRegions>
+    <scmName></scmName>
+  </scm>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>true</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.plugins.copyartifact.CopyArtifact plugin="copyartifact@1.28">
+      <project>stemcell-watcher</project>
+      <filter>stemcell_version.txt</filter>
+      <target>config</target>
+      <selector class="hudson.plugins.copyartifact.StatusBuildSelector"/>
+    </hudson.plugins.copyartifact.CopyArtifact>
+    <hudson.plugins.copyartifact.CopyArtifact plugin="copyartifact@1.28">
+      <project>cf-release-final-upload</project>
+      <filter>release_version.txt</filter>
+      <target>config</target>
+      <selector class="hudson.plugins.copyartifact.StatusBuildSelector"/>
+    </hudson.plugins.copyartifact.CopyArtifact>
+    <hudson.tasks.Shell>
+      <command>read STEMCELL_NAME STEMCELL_VERSION &lt;&lt;&lt;$(cat $WORKSPACE/config/stemcell_version.txt)
+read RELEASE_NAME RELEASE_VERSION &lt;&lt;&lt;$(cat $WORKSPACE/config/release_version.txt)
+export STEMCELL_NAME
+export STEMCELL_VERSION
+export RELEASE_NAME
+export RELEASE_VERSION
+cd $WORKSPACE
+MANIFEST_TEMPLATE=cloudfoundry/cf-ci.yml.erb
+MANIFEST_FINAL=cloudfoundry/cf.yml
+
+bosh -n target <%= @vars['inner_bosh']['director_ip'] %>
+bosh -n login <%= @vars['inner_bosh']['user'] %> <%= @vars['inner_bosh']['pass'] %>
+
+export OS_HOST=<%= @vars['openstack']['auth_url'] %>
+export OS_USER=<%= @vars['openstack']['user'] %>
+export OS_PASS=<%= @vars['openstack']['pass'] %>
+export OS_TENANT=<%= @vars['openstack']['tenant'] %>
+export CC_IP=<%= @vars['cloud_controller']['ip'] %>
+export CC_ROOT_DOMAIN=<%= @vars['cloud_controller']['root_domain'] %>
+export BOSH_UUID=$(bosh status | grep UUID | awk '{print $2}')
+
+rake manifest:prepare[&quot;${MANIFEST_TEMPLATE}&quot;,&quot;${MANIFEST_FINAL}&quot;]
+
+bosh -n deployment $WORKSPACE/${MANIFEST_FINAL}
+bosh -n deploy</command>
+    </hudson.tasks.Shell>
+  </builders>
+<publishers>
+<hudson.tasks.BuildTrigger>
+<childProjects>vcap-yeti</childProjects>
+<threshold>
+<name>SUCCESS</name>
+<ordinal>0</ordinal>
+<color>BLUE</color>
+<completeBuild>true</completeBuild>
+</threshold>
+</hudson.tasks.BuildTrigger>
+</publishers>
+<buildWrappers>
+<ruby-proxy-object>
+<ruby-object ruby-class="Jenkins::Tasks::BuildWrapperProxy" pluginid="rbenv">
+<pluginid pluginid="rbenv" ruby-class="String">rbenv</pluginid>
+<object ruby-class="RbenvWrapper" pluginid="rbenv">
+<ruby__build__repository pluginid="rbenv" ruby-class="String">https://github.com/sstephenson/ruby-build.git</ruby__build__repository>
+<rbenv__root pluginid="rbenv" ruby-class="String">$HOME/.rbenv</rbenv__root>
+<rbenv__repository pluginid="rbenv" ruby-class="String">https://github.com/sstephenson/rbenv.git</rbenv__repository>
+<rbenv__revision pluginid="rbenv" ruby-class="String">master</rbenv__revision>
+<ruby__build__revision pluginid="rbenv" ruby-class="String">master</ruby__build__revision>
+<gem__list pluginid="rbenv" ruby-class="String">bundler,rake</gem__list>
+<version pluginid="rbenv" ruby-class="String">1.9.3-p448</version>
+<ignore__local__version ruby-class="FalseClass" pluginid="rbenv"/>
+</object>
+</ruby-object>
+</ruby-proxy-object>
+</buildWrappers>
+</project>
