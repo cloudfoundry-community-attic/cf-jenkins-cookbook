@@ -49,7 +49,11 @@ It is assumed both BOSH's will reside in the same target IaaS, using the same Op
 Vagrant deployments
 -------------------
 
-I've included a Vagrantfile with configurations for Virtualbox, VMWare Fusion, and Openstack (where I'm running it).
+I've included a Vagrantfile template with configurations for Virtualbox, VMWare Fusion, and Openstack (where I'm running it).
+
+```
+cp Vagrantfile.template Vagrantfile
+```
 
 ### Vagrant Plugins
 
