@@ -51,7 +51,7 @@
     <hudson.tasks.Shell>
       <command>cd $WORKSPACE
 
-export CANDIDATE_BUILD_NUMBER=${BUILD_NUMBER}
+export CANDIDATE_BUILD_NUMBER=$((${BUILD_NUMBER} + 3)) # need to increment by 3 to appease bundler later
 bundle install --local
 bundle exec rake release:create_dev_release
 DEV_RELEASE=`ls -t release/dev_releases | tee | head -1`
