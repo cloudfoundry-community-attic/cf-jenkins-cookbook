@@ -57,6 +57,10 @@ bundle exec rake release:create_dev_release
 DEV_RELEASE=`ls -t release/dev_releases | tee | head -1`
 RELEASE_PATH=${WORKSPACE}/release/dev_releases/${DEV_RELEASE}
 
+export MICRO_BOSH_HOST=<%= @vars['outer_bosh']['director_ip'] %>
+export MICRO_BOSH_USER=<%= @vars['outer_bosh']['user'] %>
+export MICRO_BOSH_PASS=<%= @vars['outer_bosh']['pass'] %>
+
 bosh -n target $MICRO_BOSH_HOST 
 bosh -n login $MICRO_BOSH_USER $MICRO_BOSH_PASS 
 bosh -n upload release ${RELEASE_PATH} --rebase

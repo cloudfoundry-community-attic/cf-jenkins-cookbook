@@ -69,7 +69,7 @@ export MICRO_BOSH_HOST=<%= @vars['outer_bosh']['director_ip'] %>
 export MICRO_BOSH_USER=<%= @vars['outer_bosh']['user'] %>
 export MICRO_BOSH_PASS=<%= @vars['outer_bosh']['pass'] %>
 
-bosh target $MICRO_BOSH_HOST 
+bosh -n target $MICRO_BOSH_HOST 
 bosh -n login $MICRO_BOSH_USER $MICRO_BOSH_PASS 
 
 export OS_AUTH_URL=<%= @vars['openstack']['auth_url'] %>
