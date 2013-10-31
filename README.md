@@ -277,10 +277,10 @@ and then customise the cf_jenkins Chef attributes as appropriate.
 
 Known Issues
 ------------
-
+- Jenkins system default shell needs to be automatically set to /bin/bash
 - Jenkins Git SSH Credentials need to be setup manually after Chef deployment
 - cf-services-release, cf-services-contrib-release need uploading manually to BOSH server (build jobs not yet created to automate this)
-
+- bosh-release-upload job seems to fail until BUILD_CANDIDATE env variable >= 3
 
 TODO
 ----
@@ -311,6 +311,8 @@ Author: Ryan Grenz
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 
-```http://www.apache.org/licenses/LICENSE-2.0```
+```
+http://www.apache.org/licenses/LICENSE-2.0
+```
 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
