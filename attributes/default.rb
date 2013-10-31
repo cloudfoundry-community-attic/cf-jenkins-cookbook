@@ -7,7 +7,7 @@ default['jenkins_cf']['outer_bosh']['pass'] = 'admin'
 
 default['jenkins_cf']['inner_bosh']['director_ip'] = 'localhost' # Inner BOSH director floating ip
 default['jenkins_cf']['inner_bosh']['powerdns_ip'] = 'localhost' # Inner BOSH powerdns floating ip
-default['jenkins_cf']['inner_bosh']['user'] = 'admin' # Inner BOSH username
+default['jenkins_cf']['inner_bosh']['user'] = 'admin' # Inner BOSH username
 default['jenkins_cf']['inner_bosh']['pass'] = 'admin' # Inner BOSH password
 default['jenkins_cf']['inner_bosh']['net_id'] = '' # Inner BOSH's quantum/neutron network id to use for cloud ip assignments
 
