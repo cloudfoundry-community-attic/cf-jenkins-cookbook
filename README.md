@@ -22,7 +22,7 @@ Pivotal's S3 bucket for BOSH stemcells is regularly polled for newly published s
 Builds that successfully upload BOSH releases or new stemcells will then trigger deployments of Cloud Foundry v2 and/or BOSH itself.
 These deployments use templated BOSH deployment manifests, which you should keep in a separate git repo. See section below for more info.
 
-Mutex locks on deploy jobs will ensure that any currently running BOSH release uploads complete successfully before allowing a BOSH deployment build to run.
+TODO: Mutex locks on deploy jobs will ensure that any currently running BOSH release uploads complete successfully before allowing a BOSH deployment build to run.
 
 Once deployments are complete, **vcap-yeti** integration tests and **stac2** performance tests are executed to ensure production viability of the combination of BOSH releases and deploy manifest being tested. 
 
@@ -33,16 +33,16 @@ Supported Installations
 
 This cookbook only supports Openstack Grizzly for Cloud Foundry v2 deployments right now, although any BOSH supported IaaS should work fine with appropriate cookbook attribute and deploy manifest modifications.
 
-If you're using Openstack, quantum/neutron is the only tested networking. Please try Openstacks native and report in your findings :)
+If you're using Openstack, I have successfully tested this build system with quantum and nova-network.
 
 Inner and Outer BOSHs
 -----
 
 This build system **depends on the existence of an Outer BOSH** before you can start using it. This Outer BOSH can either be a micro BOSH (I used bosh-bootstrap gem), or a full BOSH - up to you. Deploy one and make a note of its Director IP - see required Chef attributes below.
 
-Its only purpose is to upload/deploy stemcells, and successfully (unit and BATS) tested full BOSH dev releases - ie. **the Inner BOSH**.
+The Outer BOSH is used to deploy dev releases of BOSH (ie. **the Inner BOSH**) which have passed unit and BATs tests. It'll also automatically deploy new releases of BOSH with any new stemcells that have been uploaded to the Outer BOSH.
 
-**The Inner BOSH** reflects BOSH builds that could be fit for production, and is also used by the build system to deploy cf-releases. 
+**The Inner BOSH** reflects a BOSH that could be deemed production-ready, and is also used by the build system to deploy cf-releases. 
 
 It is assumed both BOSH's will reside in the same target IaaS, using the same Openstack username/password/tenant.
 
@@ -100,7 +100,8 @@ Once you have installed this cookbook, run some builds:
 - First, **kick off a stemcell-watcher job** to get a latest stemcell installed into your existing Outer BOSH (and later Inner BOSH too)
 - Once thats finished, **start a bosh-release-upload job** to get a BOSH dev release uploaded to your Outer BOSH
 - **This should trigger a bosh-release-deploy job** which will deploy your Inner BOSH for the first time
-- Now **start a cf-release-final-upload** to upload cf-release into your Inner BOSH
+- Next, you'll need to trigger another **stemcell-watcher job** to get a stemcell uploaded into your Inner BOSH
+- Success here should trigger a **cf-release-final-upload** job to upload cf-release into your Inner BOSH
 - On success, **this should trigger a cf-release-final-deploy build** to deploy Cloud Foundry v2 through your Inner BOSH.
 - Finally, you should see builds running to integration and performance test Cloud Foundry.
 
