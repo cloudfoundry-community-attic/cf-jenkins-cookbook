@@ -121,55 +121,55 @@ Attributes
     <th>Default</th>
   </tr>
   <tr>
-    <td><tt>['jenkins_cf']['outer_bosh']['director_ip'] </tt></td>
+    <td><tt>jenkins_cf.outer_bosh.director_ip </tt></td>
     <td>String</td>
     <td>Outer BOSH director floating ip</td>
     <td><tt></tt></td>
   </tr>
   <tr>
-    <td><tt>['jenkins_cf']['outer_bosh']['user'] </tt></td>
+    <td><tt>jenkins_cf.outer_bosh.user </tt></td>
     <td>String</td>
     <td>Outer BOSH director username</td>
     <td><tt>admin</tt></td>
   </tr>
   <tr>
-    <td><tt>['jenkins_cf']['outer_bosh']['pass'] </tt></td>
+    <td><tt>jenkins_cf.outer_bosh.pass </tt></td>
     <td>String</td>
     <td>Outer BOSH director password</td>
     <td><tt>admin</tt></td>
   </tr>
   <tr>
-    <td><tt>['jenkins_cf']['inner_bosh']['director_ip']</tt></td>
+    <td><tt>jenkins_cf.inner_bosh.director_ip</tt></td>
     <td>String</td>
     <td>Inner BOSH director floating ip</td>
     <td><tt></tt></td>
   </tr>
   <tr>
-    <td><tt>['jenkins_cf']['inner_bosh']['powerdns_ip']</tt></td>
+    <td><tt>jenkins_cf.inner_bosh.powerdns_ip</tt></td>
     <td>String</td>
     <td>Inner BOSH powerdns ip</td>
     <td><tt></tt></td>
   </tr>  
   <tr>
-    <td><tt>['jenkins_cf']['inner_bosh']['user'] </tt></td>
+    <td><tt>jenkins_cf.inner_bosh.user </tt></td>
     <td>String</td>
     <td>Inner BOSH director username</td>
     <td><tt>admin</tt></td>
   </tr>
   <tr>
-    <td><tt>['jenkins_cf']['inner_bosh']['pass'] </tt></td>
+    <td><tt>jenkins_cf.inner_bosh.pass </tt></td>
     <td>String</td>
     <td>Inner BOSH director password</td>
     <td><tt>admin</tt></td>
   </tr> 
   <tr>
-    <td><tt>['jenkins_cf']['inner_bosh']['net_id'] </tt></td>
+    <td><tt>jenkins_cf.inner_bosh.net_id </tt></td>
     <td>String</td>
     <td>Id of Openstack network to ensure booted Cloud Foundry VMs only have a NIC created on that network </td>
     <td><tt></tt></td>
   </tr>     
   <tr>
-    <td><tt>['jenkins_cf']['cloud_controller']['ip']</tt></td>
+    <td><tt>jenkins_cf.cloud_controller.ip</tt></td>
     <td>String</td>
     <td>Floating IP address to use for router/cloud controller </td>
     <td><tt></tt></td>
@@ -177,79 +177,79 @@ Attributes
   
   
   <tr>
-    <td><tt>['jenkins_cf']['cloud_controller']['root_domain']</tt></td>
+    <td><tt>jenkins_cf.cloud_controller.root_domain</tt></td>
     <td>String</td>
     <td>Root domain for CFv2 (eg. for api.test.com you would use test.com here) </td>
     <td><tt></tt></td>
   </tr>   
   <tr>
-    <td><tt>['jenkins_cf']['cloud_controller']['admin_user']</tt></td>
+    <td><tt>jenkins_cf.cloud_controller.admin_user</tt></td>
     <td>String</td>
     <td>Username of CFv2 admin user</td>
     <td><tt>admin</tt></td>
   </tr>   
   <tr>
-    <td><tt>['jenkins_cf']['cloud_controller']['admin_pass']</tt></td>
+    <td><tt>jenkins_cf.cloud_controller.admin_pass</tt></td>
     <td>String</td>
     <td>Password of that admin user</td>
     <td><tt>c1oudc0wc1oudc0w</tt></td>
   </tr>   
   <tr>
-    <td><tt>['jenkins_cf']['openstack']['auth_url']</tt></td>
+    <td><tt>jenkins_cf.openstack.auth_url</tt></td>
     <td>String</td>
     <td>Openstack Auth URL, eg: http://xxx.xxx.xxx.xxx:5000/v2.0</td>
     <td><tt></tt></td>
   </tr> 
   <tr>
-    <td><tt>['jenkins_cf']['openstack']['user']</tt></td>
+    <td><tt>jenkins_cf.openstack.user</tt></td>
     <td>String</td>
     <td>Openstack username</td>
     <td><tt></tt></td>
   </tr>   
   <tr>
-    <td><tt>['jenkins_cf']['openstack']['api_key']</tt></td>
+    <td><tt>jenkins_cf.openstack.api_key</tt></td>
     <td>String</td>
     <td>Openstack API key </td>
     <td><tt></tt></td>
   </tr>    
   <tr>
-    <td><tt>['jenkins_cf']['openstack']['tenant']</tt></td>
+    <td><tt>jenkins_cf.openstack.tenant</tt></td>
     <td>String</td>
     <td>Openstack tenant</td>
     <td><tt></tt></td>
   </tr>   
   <tr>
-    <td><tt>['jenkins_cf']['git']['user']</tt></td>
+    <td><tt>jenkins_cf.git.user</tt></td>
     <td>String</td>
     <td>Git user.name to use in build job triggered git operations</td>
     <td><tt></tt></td>
   </tr>  
   <tr>
-    <td><tt>['jenkins_cf']['git']['email']</tt></td>
+    <td><tt>jenkins_cf.git.email</tt></td>
     <td>String</td>
     <td>Git user.email to use in build job triggered git operations</td>
     <td><tt></tt></td>
   </tr>    
   <tr>
-    <td><tt>['jenkins_cf']['git']['known_hosts']</tt></td>
+    <td><tt>jenkins_cf.git.known_hosts</tt></td>
     <td>Array</td>
     <td>An array of git repo hostnames to add to Jenkins user's ~/.ssh/known_hosts file to ensure auto-acceptance of keys</td>
     <td><tt>[]</tt></td>
   </tr> 
   <tr>
-    <td><tt>['jenkins_cf']['bosh_manifest_git_repo']</tt></td>
+    <td><tt>jenkins_cf.bosh_manifest_git_repo</tt></td>
     <td>String</td>
     <td>BOSH manifest template Git repository URL</td>
     <td><tt></tt></td>
   </tr>    
   <tr>
-    <td><tt>['jenkins_cf']['stemcell_base_url']</tt></td>
+    <td><tt>jenkins_cf.stemcell_base_url</tt></td>
     <td>String</td>
     <td>Stemcell artifact base URL</td>
     <td><tt>http://bosh-jenkins-artifacts.s3.amazonaws.com</tt></td>
   </tr>      
   <tr>
-    <td><tt>['jenkins_cf']['stemcell']</tt></td>
+    <td><tt>jenkins_cf.stemcell</tt></td>
     <td>String</td>
     <td>Stemcell artifact URI (suffixed to the base url)</td>
     <td><tt>bosh-stemcell/openstack/bosh-stemcell-latest-openstack-kvm-ubuntu.tgz</tt></td>
