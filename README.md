@@ -55,6 +55,17 @@ I've included a Vagrantfile template with configurations for Virtualbox, VMWare 
 cp Vagrantfile.template Vagrantfile
 ```
 
+### Install Vagrant
+
+[Download Vagrant](http://downloads.vagrantup.com/ "Vagrant - Downloads")
+
+For example, to download and install Vagrant 1.3.5 for Debian x86:
+
+```
+wget http://files.vagrantup.com/packages/a40522f5fabccb9ddabad03d836e120ff5d14093/vagrant_1.3.5_x86_64.deb
+sudo dpkg -i vagrant_1.3.5_x86_64.deb
+```
+
 ### Vagrant Plugins
 
 These plugins are required to be installed before attempting to spin up the VM:
