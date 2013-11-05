@@ -74,7 +74,7 @@ MANIFEST_FINAL=cloudfoundry/cf.yml
 bosh -n target <%= @vars['inner_bosh']['director_ip'] %>
 bosh -n login <%= @vars['inner_bosh']['user'] %> <%= @vars['inner_bosh']['pass'] %>
 
-export OS_HOST=<%= @vars['openstack']['auth_url'] %>
+export OS_AUTH_URL=<%= @vars['openstack']['auth_url'] %>
 export OS_USER=<%= @vars['openstack']['user'] %>
 export OS_PASS=<%= @vars['openstack']['pass'] %>
 export OS_TENANT=<%= @vars['openstack']['tenant'] %>
