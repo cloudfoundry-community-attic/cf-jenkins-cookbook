@@ -53,7 +53,7 @@ tar -zxvf $STEMCELL_TMP_DIR/stemcell.tgz -C $STEMCELL_TMP_DIR
 gem install bosh_cli --pre
 rbenv rehash
 
-for BOSH_TARGET in "<%= @vars['inner_bosh']['director_ip'] %>" "<%= @vars['outer_bosh']['director_ip'] %>"
+for BOSH_TARGET in "<%= @vars['outer_bosh']['director_ip'] %>" "<%= @vars['inner_bosh']['director_ip'] %>"
 do
   if bosh -n target $BOSH_TARGET; then
     bosh -n login $BOSH_USER $BOSH_PASS
