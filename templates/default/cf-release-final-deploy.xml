@@ -76,7 +76,7 @@ bosh -n login <%= @vars['inner_bosh']['user'] %> <%= @vars['inner_bosh']['pass']
 
 export OS_AUTH_URL=<%= @vars['openstack']['auth_url'] %>
 export OS_USER=<%= @vars['openstack']['user'] %>
-export OS_PASS=<%= @vars['openstack']['pass'] %>
+export OS_PASS=<%= @vars['openstack']['api_key'] %>
 export OS_TENANT=<%= @vars['openstack']['tenant'] %>
 export CC_IP=<%= @vars['cloud_controller']['ip'] %>
 export CC_ROOT_DOMAIN=<%= @vars['cloud_controller']['root_domain'] %>
