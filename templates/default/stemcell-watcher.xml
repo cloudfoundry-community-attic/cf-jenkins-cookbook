@@ -53,13 +53,14 @@ tar -zxvf $STEMCELL_TMP_DIR/stemcell.tgz -C $STEMCELL_TMP_DIR
 gem install bosh_cli --pre
 rbenv rehash
 
-for BOSH_TARGET in "<%= @vars['outer_bosh']['director_ip'] %>" "<%= @vars['inner_bosh']['director_ip'] %>"
-do
-  if bosh -n target $BOSH_TARGET; then
-    bosh -n login $BOSH_USER $BOSH_PASS
-    bosh -n upload stemcell $STEMCELL_TMP_DIR/stemcell.tgz
-  fi
-done
+<% %w{ outer_bosh inner_bosh }.each do |bosh| %>
+
+if bosh -n target <%= @vars[bosh]['director_ip'] %>; then
+  bosh -n login <%= @vars[bosh]['user'] %> <%= @vars[bosh]['pass'] %>
+  bosh -n upload stemcell $STEMCELL_TMP_DIR/stemcell.tgz
+fi
+
+<% end %>
 
 RUBY_SCRIPT=&quot;data = YAML::load(STDIN.read); puts \&quot;#{data[&apos;name&apos;]} #{data[&apos;version&apos;]}\&quot;&quot;
 STEMCELL_PROPS=`cat stemcell.MF | ruby -ryaml -e &quot;$RUBY_SCRIPT&quot;`
