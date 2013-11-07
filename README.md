@@ -103,7 +103,7 @@ You need 4 things before you are able to start using this system:
   - 1 (or more) for outer bosh, 
   - 2 for inner bosh, and 
   - 1 (or more) for Cloud Foundry v2
-- A separate git repository containing BOSH deployment manifest templates
+- A separate git repository containing BOSH deployment manifest templates. [Check out my sample repository](http://github.com/grenzr/bosh-manifests)
 - An Outer BOSH installed into your target IaaS (Micro BOSH or full BOSH)
 
 Once you have installed this cookbook, run some builds:
@@ -319,7 +319,10 @@ Contributing
 
 License and Authors
 -------------------
-Author: Ryan Grenz 
+Author: Ryan Grenz ([ryan.grenz@bskyb.com](mailto:ryan.grenz@bskyb.com))
+
+**This cookbook was created at BSkyB, who are embracing open source software and kindly supporting its development by allowing me to publish it.
+**
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 
