@@ -18,7 +18,7 @@
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers>
     <org.jenkinsci.plugins.scripttrigger.ScriptTrigger plugin="scripttrigger@0.31">
-      <spec>H * * * *</spec>
+      <spec>H H * * *</spec>
       <labelRestriction>false</labelRestriction>
       <enableConcurrentBuild>false</enableConcurrentBuild>
       <script>PATH=~/.rbenv/bin:~/.rbenv/shims:$PATH
