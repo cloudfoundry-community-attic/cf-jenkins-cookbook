@@ -7,7 +7,23 @@ include_recipe "git"
 include_recipe "git_user"
 include_recipe "ssh_known_hosts"
 
-%w{ curl libxslt-dev libxml2-dev libxml2-utils maven2 default-jdk build-essential libmysqlclient-dev libpq-dev libsqlite3-dev }.each { |package_name| package package_name }
+def create_build_job(job_name, job_vars, job_template = nil)
+	job_config = "/tmp/#{job_name}-config.xml"
+
+	jenkins_job job_name do
+	  action :nothing
+	  config job_config
+	end
+
+	template job_config do
+	  source job_template || "#{job_name}.xml"
+	  variables :vars => job_vars
+	  notifies :update, resources(:jenkins_job => job_name), :immediately
+	  # notifies :build, resources(:jenkins_job => job_name), :immediately
+	end	
+end
+
+%w{ curl libxslt-dev libxml2-dev libxml2-utils maven2 default-jdk build-essential libmysqlclient-dev libpq-dev libsqlite3-dev nova-console }.each { |package_name| package package_name }
 
 node.set['jenkins']['server']['install_method'] = 'war'
 node.set['jenkins']['server']['version'] = '1.536'
@@ -43,14 +59,6 @@ directory "#{jenkins_home}/.ssh" do
 	recursive true
 end
 
- # %w{id_rsa }.each do |key|
- # 	template "#{jenkins_home}/.ssh/#{key}" do 
- # 		source key
- # 		user jenkins_user
- # 		# notifies :create, "ruby_block[store_server_ssh_pubkey]", :immediately
- # 	end
- # end
-
 node['jenkins_cf']['git']['known_hosts'].each do |host|
   ssh_known_hosts_entry host
 end
@@ -70,25 +78,28 @@ execute "update jenkins update center" do
 end
 
 # Install plugins
-%w{ git scripttrigger rbenv parameterized-trigger copyartifact envinject ansicolor }.each do |plugin|
+%w{ git scripttrigger rbenv parameterized-trigger copyartifact envinject ansicolor ws-cleanup }.each do |plugin|
   jenkins_cli "install-plugin #{plugin}"
 end
 
 # Install Jenkins jobs
-%w{ bosh-release-deploy bosh-release-upload cf-release-final-upload cf-release-final-deploy stemcell-watcher vcap-yeti bosh-bats }.each do |job_name|
-	job_config = "/tmp/#{job_name}-config.xml"
+%w{ bosh-outer-deploy bosh-inner-deploy bosh-release-upload cf-release-final-upload cf-release-final-deploy stemcell-watcher vcap-yeti bosh-bats }.each do |job_name|
+	create_build_job(job_name, node['jenkins_cf'])
+end
 
-	jenkins_job job_name do
-	  action :nothing
-	  config job_config
-	end
+downstream_jobs = {
+	:outer => "bosh-release-deploy",
+	:inner => "cf-release-final-deploy"	
+}
 
-	template job_config do
-	  source "#{job_name}.xml"
-	  variables :vars => node['jenkins_cf']
-	  notifies :update, resources(:jenkins_job => job_name), :immediately
-	  # notifies :build, resources(:jenkins_job => job_name), :immediately
-	end	
+%w{ outer inner }.each do |bosh_layer|
+	bosh_config = node['jenkins_cf']["#{bosh_layer}_bosh"]
+	create_build_job("stemcell-#{bosh_layer}-upload", {
+		:director_ip => bosh_config['director_ip'],
+		:bosh_username => bosh_config['user'],
+		:bosh_password => bosh_config['pass'],
+		:downstream_jobs => downstream_jobs[bosh_layer.to_sym]
+	}, "stemcell-uploader.xml")
 end
 
 jenkins_cli "safe-restart"
