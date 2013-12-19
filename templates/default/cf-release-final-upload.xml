@@ -75,7 +75,7 @@ bundle update
 bosh -n target <%= @vars['inner_bosh']['director_ip'] %>
 bosh -n login <%= @vars['inner_bosh']['user'] %> <%= @vars['inner_bosh']['pass'] %>
 
-bosh -n upload release $WORKSPACE/$LATEST_RELEASE
+<% if @vars['http_proxy'] %>http_proxy=<%= @vars['http_proxy'] %><% end %> bosh -n upload release $WORKSPACE/$LATEST_RELEASE
 
 cd $WORKSPACE
 RUBY_SCRIPT=&quot;data = YAML::load(STDIN.read); puts \&quot;#{data[&apos;name&apos;]} #{data[&apos;version&apos;]}\&quot;&quot; 
