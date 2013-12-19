@@ -7,7 +7,7 @@
     <daysToKeep>-1</daysToKeep>
     <numToKeep>3</numToKeep>
     <artifactDaysToKeep>-1</artifactDaysToKeep>
-    <artifactNumToKeep>-1</artifactNumToKeep>
+    <artifactNumToKeep>1</artifactNumToKeep>
   </logRotator>
   <keepDependencies>false</keepDependencies>
   <properties/>
@@ -42,57 +42,38 @@ STEMCELL_SEARCH=<%= @vars['stemcell'] %>
 STEMCELL_DATA=`curl &quot;${STEMCELL_BASE_URL}/?prefix=${STEMCELL_SEARCH}&quot; 2&gt;/dev/null`
 STEMCELL_DATE_ADDED=`echo $STEMCELL_DATA | sed &apos;s/.*&lt;LastModified&gt;\([^&lt;]*\)&lt;\/LastModified&gt;.*/\1/&apos; | tr -d &apos; &apos;`
 STEMCELL_URL=${STEMCELL_BASE_URL}/${STEMCELL_SEARCH}
-STEMCELL_TMP_DIR=/tmp/stemcell-dl-${STEMCELL_DATE_ADDED}
+STEMCELL_TMP_DIR=${WORKSPACE}/stemcell
 
-rm -rf /tmp/stemcell-dl-*
 mkdir -p $STEMCELL_TMP_DIR
-cd $STEMCELL_TMP_DIR
-wget $STEMCELL_URL -O $STEMCELL_TMP_DIR/stemcell.tgz
-tar -zxvf $STEMCELL_TMP_DIR/stemcell.tgz -C $STEMCELL_TMP_DIR
-
-gem install bosh_cli --pre
-rbenv rehash
-
-<% %w{ outer_bosh inner_bosh }.each do |bosh| %>
-
-if bosh -n target <%= @vars[bosh]['director_ip'] %>; then
-  bosh -n login <%= @vars[bosh]['user'] %> <%= @vars[bosh]['pass'] %>
-  bosh -n upload stemcell $STEMCELL_TMP_DIR/stemcell.tgz
-fi
-
-<% end %>
+<% if @vars['http_proxy'] %>http_proxy=<%= @vars['http_proxy'] %><% end %> wget $STEMCELL_URL -O stemcell.tgz
+tar -zxvf stemcell.tgz -C $STEMCELL_TMP_DIR
 
 RUBY_SCRIPT=&quot;data = YAML::load(STDIN.read); puts \&quot;#{data[&apos;name&apos;]} #{data[&apos;version&apos;]}\&quot;&quot;
-STEMCELL_PROPS=`cat stemcell.MF | ruby -ryaml -e &quot;$RUBY_SCRIPT&quot;`
+STEMCELL_PROPS=`cat ${STEMCELL_TMP_DIR}/stemcell.MF | ruby -ryaml -e &quot;$RUBY_SCRIPT&quot;`
 
 cd $WORKSPACE
-echo ${STEMCELL_TMP_DIR}/stemcell.tgz &gt; stemcell_tgz.txt
 echo $STEMCELL_DATE_ADDED &gt; stemcell_date_added.txt
 echo $STEMCELL_PROPS &gt; stemcell_version.txt</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
     <hudson.tasks.ArtifactArchiver>
-      <artifacts>stemcell_date_added.txt, stemcell_version.txt, stemcell_tgz.txt</artifacts>
+      <artifacts>stemcell_date_added.txt, stemcell_version.txt, stemcell.tgz</artifacts>
       <latestOnly>false</latestOnly>
       <allowEmptyArchive>false</allowEmptyArchive>
     </hudson.tasks.ArtifactArchiver>
-    <hudson.tasks.BuildTrigger>
-      <childProjects>cf-release-final-deploy, bosh-release-deploy</childProjects>
-      <threshold>
-        <name>SUCCESS</name>
-        <ordinal>0</ordinal>
-        <color>BLUE</color>
-        <completeBuild>true</completeBuild>
-      </threshold>
-    </hudson.tasks.BuildTrigger>
   </publishers>
   <buildWrappers>
+    <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.19">
+      <deleteDirs>false</deleteDirs>
+      <cleanupParameter></cleanupParameter>
+      <externalDelete></externalDelete>
+    </hudson.plugins.ws__cleanup.PreBuildCleanup>
     <ruby-proxy-object>
       <ruby-object ruby-class="Jenkins::Tasks::BuildWrapperProxy" pluginid="rbenv">
         <object ruby-class="RbenvWrapper" pluginid="rbenv">
-          <ruby__build__repository pluginid="rbenv" ruby-class="String">https://github.com/sstephenson/ruby-build.git</ruby__build__repository>
           <rbenv__root pluginid="rbenv" ruby-class="String">$HOME/.rbenv</rbenv__root>
+          <ruby__build__repository pluginid="rbenv" ruby-class="String">https://github.com/sstephenson/ruby-build.git</ruby__build__repository>
           <rbenv__revision pluginid="rbenv" ruby-class="String">master</rbenv__revision>
           <rbenv__repository pluginid="rbenv" ruby-class="String">https://github.com/sstephenson/rbenv.git</rbenv__repository>
           <ruby__build__revision pluginid="rbenv" ruby-class="String">master</ruby__build__revision>
