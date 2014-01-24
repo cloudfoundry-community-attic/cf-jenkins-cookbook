@@ -7,20 +7,20 @@ include_recipe "git_user"
 include_recipe "ssh_known_hosts"
 
 %w{ curl 
-		libcurl4-openssl-dev 
-		libxslt-dev 
-		libxml2-dev 
-		libxml2-utils 
-		maven2 
-		default-jdk 
-		build-essential 
-		libmysqlclient-dev 
-		libpq-dev 
-		libsqlite3-dev 
-		genisoimage
-		nova-console 
-		debootstrap 
-		kpartx }.each { |package_name| package package_name } 
+    libcurl4-openssl-dev 
+    libxslt-dev 
+    libxml2-dev 
+    libxml2-utils 
+    maven2 
+    default-jdk 
+    build-essential 
+    libmysqlclient-dev 
+    libpq-dev 
+    libsqlite3-dev 
+    genisoimage
+    nova-console 
+    debootstrap 
+    kpartx }.each { |package_name| package package_name } 
 
 node.set['jenkins']['master']['install_method'] = 'war'
 node.set['jenkins']['master']['version'] = '1.548'
@@ -33,27 +33,27 @@ jenkins_home = node['jenkins']['master']['home']
 
 # Jenkins user modifications
 user_account jenkins_user do
-	home jenkins_home
-  shell	'/bin/bash'
+  home jenkins_home
+  shell '/bin/bash'
 end
 
 sudo jenkins_user do
-	user jenkins_user
-	nopasswd true
-	runas 'ALL'
+  user jenkins_user
+  nopasswd true
+  runas 'ALL'
 end
 
 git_user jenkins_user do
-  full_name   	node['jenkins_cf']['git']['user']
-  email       	node['jenkins_cf']['git']['email']
-  home					jenkins_home
+  full_name     node['jenkins_cf']['git']['user']
+  email         node['jenkins_cf']['git']['email']
+  home          jenkins_home
 end
 
 # Drop SSH keys into Jenkins users so it can connect with git server 
 directory "#{jenkins_home}/.ssh" do
-	owner jenkins_user
-	group jenkins_user
-	recursive true
+  owner jenkins_user
+  group jenkins_user
+  recursive true
 end
 
 node['jenkins_cf']['git']['known_hosts'].each do |host|
@@ -76,13 +76,13 @@ end
 
 # Install plugins
 %w{ git 
-	  scripttrigger 
-	  rbenv 
-	  parameterized-trigger 
-	  copyartifact 
-	  envinject 
-	  ansicolor 
-	  ws-cleanup }.each do |plugin|
-	jenkins_plugin plugin
+    scripttrigger 
+    rbenv 
+    parameterized-trigger 
+    copyartifact 
+    envinject 
+    ansicolor 
+    ws-cleanup }.each do |plugin|
+  jenkins_plugin plugin
   # jenkins_command "install-plugin #{plugin}"
 end
