@@ -1,4 +1,4 @@
-name             'jenkins-cf'
+name             'jenkins_cf'
 maintainer       'BSkyB'
 maintainer_email 'ryan.grenz@bskyb.com'
 license          'All rights reserved'
