@@ -1,5 +1,3 @@
-# This Micro (or full) BOSH should already be deployed in your IaaS before you start
-
 # Inner/Outer BOSH configurations
 default['jenkins_cf']['outer_bosh']['director_ip']  = ''					 
 default['jenkins_cf']['outer_bosh']['user'] = 'admin'
@@ -27,9 +25,12 @@ default['jenkins_cf']['git']['user'] = 'Jenkins'
 default['jenkins_cf']['git']['email'] = 'jenkins@cf.org'
 default['jenkins_cf']['git']['known_hosts'] = [ ] # Add a git server to known host to ensure using ssh keys wont prompt
 
-# BOSH
+# BOSH manifests
 default['jenkins_cf']['bosh_manifest_git_repo'] = 'git@github.com:user/bosh-manifests.git'
 
-# Stemcell 
+# Stemcell sourcesj
 default['jenkins_cf']['stemcell_base_url'] = 'http://bosh-jenkins-artifacts.s3.amazonaws.com'
 default['jenkins_cf']['stemcell'] = 'bosh-stemcell/openstack/bosh-stemcell-latest-openstack-kvm-ubuntu.tgz'	# Stemcell to use across the stack
+
+# Component jobs
+default['jenkins_cf']['comp_jobs']['install'] = [ ]
