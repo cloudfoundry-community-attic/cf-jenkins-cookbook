@@ -13,7 +13,7 @@ job_props = {
     bundle install
 
     # create your test VM
-    ENV['VAGRANT_DEFAULT_PROVIDER'] = 'lxc'
+    export VAGRANT_DEFAULT_PROVIDER = 'lxc'
     bundle exec rake test_vm
   ],
   :test => ''
