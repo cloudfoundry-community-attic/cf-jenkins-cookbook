@@ -1,4 +1,9 @@
 # Install BOSH upload/deploy jobs
+envs = node['jenkins_cf']['environments']
+target_iaas = node['jenkins_cf']['target_iaas']
+target_env = node['jenkins_cf']['target_env']
+env_config = get_target_environment(envs, target_iaas, target_env)
+
 %w{ bosh-outer-deploy 
     bosh-inner-deploy 
     bosh-release-upload 
@@ -14,8 +19,8 @@
 end
 
 downstream_jobs = {
-  :outer => "bosh-release-deploy",
-  :inner => "cf-release-final-deploy" 
+  outer: 'bosh-release-deploy',
+  inner: 'cf-release-final-deploy',
 }
 
 # Install stemcell upload jobs
@@ -23,14 +28,14 @@ downstream_jobs = {
   bosh_config = node['jenkins_cf']["#{bosh_layer}_bosh"]
 
   stemcell_job_config = {
-    :director_ip => bosh_config['director_ip'],
-    :bosh_username => bosh_config['user'],
-    :bosh_password => bosh_config['pass'],
-    :downstream_jobs => downstream_jobs[bosh_layer.to_sym]
+    director_ip: bosh_config['director_ip'],
+    bosh_username: bosh_config['user'],
+    bosh_password: bosh_config['pass'],
+    downstream_jobs: downstream_jobs[bosh_layer.to_sym],
   }
 
   jenkins_cf_job "stemcell-#{bosh_layer}-upload" do
     config stemcell_job_config
-    template "stemcell-uploader.xml"
+    template 'stemcell-uploader.xml'
   end
 end
