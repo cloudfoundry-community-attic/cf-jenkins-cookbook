@@ -51,7 +51,7 @@ fi
 
 gem install bosh_cli --pre
 
-bosh -n target 10.95.192.174
+bosh -n target <%= ENV['INNER_BOSH_IP'] %>
 bosh -n login admin admin
 
  bosh -n upload release $WORKSPACE/$LATEST_RELEASE
