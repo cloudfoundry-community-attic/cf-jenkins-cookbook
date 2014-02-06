@@ -3,3 +3,7 @@
 /.vagrant
 .DS_Store
 /Vagrantfile
+.kitchen/
+.kitchen.local.yml
+/.idea
+/.kitchen.yml
