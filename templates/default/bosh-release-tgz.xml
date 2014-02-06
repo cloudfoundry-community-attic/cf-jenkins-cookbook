@@ -1,0 +1,80 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@2.0.1">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url><%= @vars['git_repos']['bosh']['address'] %></url>
+        <credentialsId><%= @vars['git_repos']['bosh']['credential'] %></credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name><%= @vars['git_repos']['bosh']['branch'] %></name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions/>
+  </scm>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>bundle install --local
+
+cd $WORKSPACE/release
+bundle exec bosh -n reset release
+
+cd $WORKSPACE
+
+export CANDIDATE_BUILD_NUMBER=$((${BUILD_NUMBER} + 3)) # need to increment by 3 to appease bundler later
+
+<% if @vars['http_proxy'] %>http_proxy=<%= @vars['http_proxy'] %><% end %> bundle exec rake release:create_dev_release
+DEV_RELEASE=`ls -t release/dev_releases | tee | head -1`
+RELEASE_PATH=${WORKSPACE}/release/dev_releases
+FULL_RELEASE_PATH=${RELEASE_PATH}/${DEV_RELEASE}
+
+cd $WORKSPACE/release
+bundle exec bosh create release ${FULL_RELEASE_PATH} --with-tarball
+
+RUBY_SCRIPT=&quot;data = YAML::load(STDIN.read); puts \&quot;#{data[&apos;name&apos;]} #{data[&apos;version&apos;]}\&quot;&quot; 
+RELEASE_PROPS=`cat $FULL_RELEASE_PATH | ruby -ryaml -e &quot;$RUBY_SCRIPT&quot;`
+read RELEASE_NAME RELEASE_VERSION &lt;&lt;&lt;$(echo $RELEASE_PROPS) 
+
+mv ${RELEASE_PATH}/${RELEASE_NAME}-${RELEASE_VERSION}.tgz $WORKSPACE/bosh-release.tgz</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.tasks.ArtifactArchiver>
+      <artifacts>bosh-release.tgz</artifacts>
+      <latestOnly>false</latestOnly>
+      <allowEmptyArchive>false</allowEmptyArchive>
+    </hudson.tasks.ArtifactArchiver>
+  </publishers>
+  <buildWrappers>
+    <ruby-proxy-object>
+      <ruby-object ruby-class="Jenkins::Tasks::BuildWrapperProxy" pluginid="rbenv">
+        <pluginid pluginid="rbenv" ruby-class="String">rbenv</pluginid>
+        <object ruby-class="RbenvWrapper" pluginid="rbenv">
+          <ruby__build__repository pluginid="rbenv" ruby-class="String">https://github.com/sstephenson/ruby-build.git</ruby__build__repository>
+          <rbenv__root pluginid="rbenv" ruby-class="String">$HOME/.rbenv</rbenv__root>
+          <rbenv__revision pluginid="rbenv" ruby-class="String">master</rbenv__revision>
+          <rbenv__repository pluginid="rbenv" ruby-class="String">https://github.com/sstephenson/rbenv.git</rbenv__repository>
+          <ruby__build__revision pluginid="rbenv" ruby-class="String">master</ruby__build__revision>
+          <gem__list pluginid="rbenv" ruby-class="String">bundler,rake</gem__list>
+          <version pluginid="rbenv" ruby-class="String">1.9.3-p484</version>
+          <ignore__local__version ruby-class="FalseClass" pluginid="rbenv"/>
+        </object>
+      </ruby-object>
+    </ruby-proxy-object>
+  </buildWrappers>
+</project>
