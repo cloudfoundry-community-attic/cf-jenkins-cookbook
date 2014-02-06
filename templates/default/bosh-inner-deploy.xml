@@ -10,12 +10,13 @@
       <hudson.plugins.git.UserRemoteConfig>
         <name></name>
         <refspec></refspec>
-        <url><%= @vars['bosh_manifest_git_repo'] %></url>
+        <url><%= @vars['git_repos']['bosh_manifests']['address'] %></url>
+        <credentialsId><%= @vars['git_repos']['bosh_manifests']['credential'] %></credentialsId>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
     <branches>
       <hudson.plugins.git.BranchSpec>
-        <name>master</name>
+        <name><%= @vars['git_repos']['bosh_manifests']['branch'] %></name>
       </hudson.plugins.git.BranchSpec>
     </branches>
     <disableSubmodules>false</disableSubmodules>
@@ -48,42 +49,70 @@
   <triggers/>
   <concurrentBuild>false</concurrentBuild>
   <builders>
-    <hudson.plugins.copyartifact.CopyArtifact plugin="copyartifact@1.28">
+ <hudson.plugins.copyartifact.CopyArtifact plugin="copyartifact@1.28">
       <project>stemcell-watcher</project>
       <filter>stemcell_version.txt</filter>
       <target>config</target>
       <selector class="hudson.plugins.copyartifact.StatusBuildSelector"/>
     </hudson.plugins.copyartifact.CopyArtifact>
+    <hudson.plugins.copyartifact.CopyArtifact plugin="copyartifact@1.28">
+      <project>bosh-release-upload</project>
+      <filter>release_version.txt</filter>
+      <target>config</target>
+      <selector class="hudson.plugins.copyartifact.StatusBuildSelector"/>
+    </hudson.plugins.copyartifact.CopyArtifact>
     <hudson.tasks.Shell>
       <command>read STEMCELL_NAME STEMCELL_VERSION &lt;&lt;&lt;$(cat $WORKSPACE/config/stemcell_version.txt)
+read RELEASE_NAME RELEASE_VERSION &lt;&lt;&lt;$(cat $WORKSPACE/config/release_version.txt)
 export STEMCELL_NAME
 export STEMCELL_VERSION
+export RELEASE_NAME
+export RELEASE_VERSION
 cd $WORKSPACE 
 
 bundle install
 
-MANIFEST_TEMPLATE=bosh/openstack-dynamic.yml.erb
-MANIFEST_FINAL=bosh/bosh.yml
-
+export MANIFEST_TEMPLATE=<%= @vars['manifest_templates']['inner_bosh'] %>
+export MANIFEST_FINAL=inner_bosh/<%= @vars['iaas'] %>/bosh.yml
 export OUTER_BOSH_HOST=<%= @vars['outer_bosh']['director_ip'] %>
 export OUTER_BOSH_USER=<%= @vars['outer_bosh']['user'] %>
 export OUTER_BOSH_PASS=<%= @vars['outer_bosh']['pass'] %>
-
-bosh -n target $OUTER_BOSH_HOST 
-bosh -n login $OUTER_BOSH_USER $OUTER_BOSH_PASS 
-
-export OS_AUTH_URL=<%= @vars['openstack']['auth_url'] %>
-export OS_USERNAME=<%= @vars['openstack']['user'] %>
-export OS_PASSWORD=<%= @vars['openstack']['api_key'] %>
-export OS_TENANT=<%= @vars['openstack']['tenant'] %>
-
 export OUTER_BOSH_UUID=$(bosh status | grep UUID | awk '{print $2}')
 export BOSH_HOST=<%= @vars['inner_bosh']['director_ip'] %>
 export POWERDNS_HOST=<%= @vars['inner_bosh']['powerdns_ip'] %>
-export BOSH_DYNAMIC_NET_ID=<%= @vars['inner_bosh']['net_id'] %>
+
+<%
+  case @vars['iaas']
+  when 'openstack'
+    %>
+    export OS_AUTH_URL=<%= @vars['openstack']['auth_url'] %>
+    export OS_USERNAME=<%= @vars['openstack']['user'] %>
+    export OS_PASSWORD=<%= @vars['openstack']['api_key'] %>
+    export OS_TENANT=<%= @vars['openstack']['tenant'] %>
+    export BOSH_DYNAMIC_NET_ID=<%= @vars['inner_bosh']['net_id'] %>
+    export KEY_NAME=outerbosh
+    export PRIVATE_KEY_PATH=${WORKSPACE}/${KEY_NAME}.pem    
+    ssh-keygen -t rsa -f ${PRIVATE_KEY_PATH} -q -N &quot;&quot;
+    nova keypair-delete ${KEY_NAME} | exit 0
+    nova keypair-add --pub_key ${WORKSPACE}/outerbosh.pem.pub ${KEY_NAME} | exit 0    
+    <%
+  when 'vsphere'
+    %>
+    export VSPHERE_CONNECTION='<%= JSON.generate(@vars['iaas_config']['connection']['inner_bosh']['vcenter']) %>'
+    RUBY_SCRIPT="require 'json'; data = YAML::load(STDIN.read); vconn = JSON.parse(ENV['VSPHERE_CONNECTION']); data['properties']['vcenter'] = vconn; File.open(ENV['MANIFEST_TEMPLATE'], 'w') { |file| file.write(data.to_yaml) }"
+    cat ${MANIFEST_TEMPLATE} | ruby -ryaml -e "$RUBY_SCRIPT"    
+
+    export VSPHERE_NETWORKS='<%= JSON.generate(@vars['iaas_config']['networks']['inner_bosh']) %>'
+    RUBY_SCRIPT="require 'json'; data = YAML::load(STDIN.read); vnetworks = JSON.parse(ENV['VSPHERE_NETWORKS']); data['networks'] = vnetworks; File.open(ENV['MANIFEST_TEMPLATE'], 'w') { |file| file.write(data.to_yaml) }"
+    cat ${MANIFEST_TEMPLATE} | ruby -ryaml -e "$RUBY_SCRIPT"        
+    <%
+  end 
+%>
 
 rake manifest:prepare[&quot;${MANIFEST_TEMPLATE}&quot;,&quot;${MANIFEST_FINAL}&quot;]
 
+bosh -n target $OUTER_BOSH_HOST 
+bosh -n login $OUTER_BOSH_USER $OUTER_BOSH_PASS 
 bosh -n deployment $WORKSPACE/${MANIFEST_FINAL}
 bosh -n deploy</command>
     </hudson.tasks.Shell>

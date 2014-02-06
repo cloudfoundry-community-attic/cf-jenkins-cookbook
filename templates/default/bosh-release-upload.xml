@@ -10,12 +10,13 @@
       <hudson.plugins.git.UserRemoteConfig>
         <name></name>
         <refspec></refspec>
-        <url>https://github.com/cloudfoundry/bosh.git</url>
+        <url><%= @vars['git_repos']['bosh']['address'] %></url>
+        <credentialsId><%= @vars['git_repos']['bosh']['credential'] %></credentialsId>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
     <branches>
       <hudson.plugins.git.BranchSpec>
-        <name>master</name>
+        <name><%= @vars['git_repos']['bosh']['branch'] %></name>
       </hudson.plugins.git.BranchSpec>
     </branches>
     <disableSubmodules>false</disableSubmodules>
@@ -49,7 +50,11 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>cd $WORKSPACE
+      <command>
+cd $WORKSPACE/release
+bosh -n reset release
+
+cd $WORKSPACE
 
 export CANDIDATE_BUILD_NUMBER=$((${BUILD_NUMBER} + 3)) # need to increment by 3 to appease bundler later
 bundle install --local

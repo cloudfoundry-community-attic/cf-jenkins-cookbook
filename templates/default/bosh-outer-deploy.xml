@@ -1,4 +1,3 @@
-
 <?xml version='1.0' encoding='UTF-8'?>
 <project>
   <actions/>
@@ -9,13 +8,13 @@
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
-        <url>apache@git.cg.bskyb.com:envs/bosh-manifests.git</url>
-        <credentialsId>4e5e2fc9-9784-426a-9657-00648ea82f31</credentialsId>
+        <url><%= @vars['git_repos']['bosh_manifests']['address'] %></url>
+        <credentialsId><%= @vars['git_repos']['bosh_manifests']['credential'] %></credentialsId>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
     <branches>
       <hudson.plugins.git.BranchSpec>
-        <name>master</name>
+        <name><%= @vars['git_repos']['bosh_manifests']['branch'] %></name>
       </hudson.plugins.git.BranchSpec>
     </branches>
     <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
@@ -38,25 +37,37 @@
     <hudson.tasks.Shell>
       <command>bundle install
 
-export OS_AUTH_URL=<%= @vars['openstack']['auth_url'] %>
-export OS_USERNAME=<%= @vars['openstack']['user'] %>
-export OS_PASSWORD=<%= @vars['openstack']['api_key'] %>
-export OS_TENANT_NAME=<%= @vars['openstack']['tenant'] %>
 export OUTER_BOSH_IP=<%= @vars['outer_bosh']['director_ip'] %>
-export KEY_NAME=outerbosh
-export PRIVATE_KEY_PATH=${WORKSPACE}/${KEY_NAME}.pem
+export MANIFEST_TEMPLATE=<%= @vars['manifest_templates']['outer_bosh'] %>
+export MANIFEST_FINAL=outer_bosh/<%= @vars['iaas'] %>/micro_bosh.yml
 
-MANIFEST_TEMPLATE=microbosh/openstack/micro_bosh.yml.erb
-MANIFEST_FINAL=microbosh/openstack/micro_bosh.yml
+<%
+  case @vars['iaas']
+  when 'openstack'
+    %>
+    export OS_AUTH_URL=<%= @vars['openstack']['auth_url'] %>
+    export OS_USERNAME=<%= @vars['openstack']['user'] %>
+    export OS_PASSWORD=<%= @vars['openstack']['api_key'] %>
+    export OS_TENANT=<%= @vars['openstack']['tenant'] %>
+    export KEY_NAME=outerbosh
+    export PRIVATE_KEY_PATH=${WORKSPACE}/${KEY_NAME}.pem    
+    ssh-keygen -t rsa -f ${PRIVATE_KEY_PATH} -q -N &quot;&quot;
+    nova keypair-delete ${KEY_NAME} | exit 0
+    nova keypair-add --pub_key ${WORKSPACE}/outerbosh.pem.pub ${KEY_NAME} | exit 0    
+    <%
+  when 'vsphere'
+    %>
+    export VSPHERE_CONNECTION='<%= JSON.generate(@vars['iaas_config']['connection']['outer_bosh']['vcenters']) %>'
+    RUBY_SCRIPT="require 'json'; data = YAML::load(STDIN.read); vconn = JSON.parse(ENV['VSPHERE_CONNECTION']); data['cloud']['properties']['vcenters'] = vconn; File.open(ENV['MANIFEST_TEMPLATE'], 'w') { |file| file.write(data.to_yaml) }"
+    cat ${MANIFEST_TEMPLATE} | ruby -ryaml -e "$RUBY_SCRIPT"    
+    <%
+  end 
+%>
 
 rake manifest:prepare[&quot;${MANIFEST_TEMPLATE}&quot;,&quot;${MANIFEST_FINAL}&quot;]
 
-ssh-keygen -t rsa -f ${PRIVATE_KEY_PATH} -q -N &quot;&quot;
-nova keypair-delete ${KEY_NAME} | exit 0
-nova keypair-add --pub_key ${WORKSPACE}/outerbosh.pem.pub ${KEY_NAME} | exit 0
-
-cd $WORKSPACE/microbosh
-bosh -n micro deployment openstack
+cd $WORKSPACE/outer_bosh
+bosh -n micro deployment <%= @vars['iaas'] %>
 bosh -n micro deploy $WORKSPACE/stemcell.tgz</command>
     </hudson.tasks.Shell>
   </builders>
