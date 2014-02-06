@@ -4,7 +4,7 @@ include_recipe 'user'
 include_recipe 'apt'
 include_recipe 'git'
 include_recipe 'git_user'
-include_recipe 'ssh_known_hosts'
+#include_recipe 'ssh_known_hosts'
 
 %w{ vim
     curl 
@@ -21,7 +21,9 @@ include_recipe 'ssh_known_hosts'
     genisoimage
     nova-console 
     debootstrap 
-    kpartx }.each { |package_name| package package_name }
+    kpartx
+    golang-go
+    bzr }.each { |package_name| package package_name }
 
 node.set['jenkins']['master']['install_method'] = 'war'
 node.set['jenkins']['master']['version'] = '1.548'
@@ -50,15 +52,13 @@ git_user jenkins_user do
   home          jenkins_home
 end
 
-# Drop SSH keys into Jenkins users so it can connect with git server
-directory "#{jenkins_home}/.ssh" do
-  owner jenkins_user
-  group jenkins_user
-  recursive true
-end
-
-node['jenkins_cf']['git']['known_hosts'].each do |host|
-  ssh_known_hosts_entry host
+# Jenkins credentials
+node['jenkins_cf']['jenkins_credentials'].each do |name, credential|
+  jenkins_private_key_credentials name do
+    id credential['id']
+    description credential['description']
+    private_key credential['private_key']
+  end
 end
 
 # Install update center json before attempting to install plugins
@@ -84,6 +84,6 @@ end
     envinject 
     ansicolor 
     ws-cleanup }.each do |plugin|
-  jenkins_plugin plugin
-  # jenkins_command "install-plugin #{plugin}"
+  #jenkins_plugin plugin
+  jenkins_command "install-plugin #{plugin}"
 end
