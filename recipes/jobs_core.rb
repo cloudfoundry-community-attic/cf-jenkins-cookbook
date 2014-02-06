@@ -1,29 +1,23 @@
-# Install BOSH upload/deploy jobs
-envs = node['jenkins_cf']['environments']
-target_iaas = node['jenkins_cf']['target_iaas']
-target_env = node['jenkins_cf']['target_env']
-env_config = get_target_environment(envs, target_iaas, target_env)
+# Install core BOSH upload/deploy jobs
 
 %w{ bosh-outer-deploy 
     bosh-inner-deploy 
     bosh-release-upload 
-    cf-release-final-upload 
-    cf-release-final-deploy
-    cf-services-contrib-release-final-upload 
-    stemcell-watcher 
-    vcap-yeti 
-    bosh-bats }.each do |job_name|
+    cf-release-upload 
+    cf-release-deploy
+    cf-services-contrib-release-upload 
+    vcap-yeti }.each do |job_name|
   jenkins_cf_job job_name do
     config node['jenkins_cf']
   end
 end
 
+# Install stemcell upload jobs
 downstream_jobs = {
   outer: 'bosh-release-deploy',
-  inner: 'cf-release-final-deploy',
+  inner: 'cf-release-deploy',
 }
 
-# Install stemcell upload jobs
 %w{ outer inner }.each do |bosh_layer|
   bosh_config = node['jenkins_cf']["#{bosh_layer}_bosh"]
 
