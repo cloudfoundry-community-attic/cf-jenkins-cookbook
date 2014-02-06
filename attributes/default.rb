@@ -34,3 +34,5 @@ default['jenkins_cf']['stemcell'] = 'bosh-stemcell/openstack/bosh-stemcell-lates
 
 # Component jobs
 default['jenkins_cf']['comp_jobs']['install'] = []
+
+default['jenkins_cf']['build_type'] = 'final' # could be dev or final
