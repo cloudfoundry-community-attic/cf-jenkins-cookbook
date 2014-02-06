@@ -10,12 +10,13 @@
       <hudson.plugins.git.UserRemoteConfig>
         <name></name>
         <refspec></refspec>
-        <url>https://github.com/cloudfoundry/cf-release.git</url>
+        <url><%= @vars['git_repos']['cf_release']['address'] %></url>
+        <credentialsId><%= @vars['git_repos']['cf_release']['credential'] %></credentialsId>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
     <branches>
       <hudson.plugins.git.BranchSpec>
-        <name>deployed-to-prod</name>
+        <name><%= @vars['git_repos']['cf_release']['branch'] %></name>
       </hudson.plugins.git.BranchSpec>
     </branches>
     <disableSubmodules>false</disableSubmodules>
