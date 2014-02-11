@@ -56,7 +56,7 @@
       <selector class="hudson.plugins.copyartifact.StatusBuildSelector"/>
     </hudson.plugins.copyartifact.CopyArtifact>
     <hudson.plugins.copyartifact.CopyArtifact plugin="copyartifact@1.28">
-      <project>cf-release-final-upload</project>
+      <project>cf-release-upload</project>
       <filter>release_version.txt</filter>
       <target>config</target>
       <selector class="hudson.plugins.copyartifact.StatusBuildSelector"/>
@@ -68,17 +68,48 @@ export STEMCELL_NAME
 export STEMCELL_VERSION
 export RELEASE_NAME
 export RELEASE_VERSION
+export MANIFEST_TEMPLATE=cloudfoundry/cf-ci.yml.erb
+export MANIFEST_FINAL=cloudfoundry/cf.yml
+
+export GOPATH=~/go
+export PATH=~/go/bin:$PATH
+go get -v github.com/cloudfoundry-incubator/spiff
+
+<%
+  case @vars['iaas']
+  when 'openstack'
+    %>
+    export OS_AUTH_URL=<%= @vars['openstack']['auth_url'] %>
+    export OS_USERNAME=<%= @vars['openstack']['user'] %>
+    export OS_PASSWORD=<%= @vars['openstack']['api_key'] %>
+    export OS_TENANT=<%= @vars['openstack']['tenant'] %>
+    <%
+  when 'vsphere'
+    %>
+    <%
+  end 
+%>
+
 cd $WORKSPACE
-MANIFEST_TEMPLATE=cloudfoundry/cf-ci.yml.erb
-MANIFEST_FINAL=cloudfoundry/cf.yml
+
+cat &lt;&lt; EOF &gt; $WORKSPACE/$MANIFEST_TEMPLATE
+<%
+director_uuid = ENV['DIRECTOR_UUID']
+protocol = "http"
+cf_release = ENV['CF_RELEASE_VERSION']
+cf_services_contrib_release = ENV['CONTRIB_SERVICES_RELEASE_VERSION']
+ip_address = ENV['CC_IP']
+common_password = "c1oudc0wc1oudc0w"
+root_domain = ENV['CC_ROOT_DOMAIN']
+deploymentname = "cf"
+%>
+EOF
+
+./generate_manifest.sh <%= @vars['iaas'] %> <%= @vars['spiff_templates']['cf_release'] %> >> $WORKSPACE/$MANIFEST_TEMPLATE 
 
 bosh -n target <%= @vars['inner_bosh']['director_ip'] %>
 bosh -n login <%= @vars['inner_bosh']['user'] %> <%= @vars['inner_bosh']['pass'] %>
 
-export OS_AUTH_URL=<%= @vars['openstack']['auth_url'] %>
-export OS_USER=<%= @vars['openstack']['user'] %>
-export OS_PASS=<%= @vars['openstack']['api_key'] %>
-export OS_TENANT=<%= @vars['openstack']['tenant'] %>
 export CC_IP=<%= @vars['cloud_controller']['ip'] %>
 export CC_ROOT_DOMAIN=<%= @vars['cloud_controller']['root_domain'] %>
 export BOSH_UUID=$(bosh status | grep UUID | awk '{print $2}')
