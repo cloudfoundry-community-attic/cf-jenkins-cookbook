@@ -67,8 +67,8 @@ export MANIFEST_FINAL=outer_bosh/<%= @vars['iaas'] %>/micro_bosh.yml
 rake manifest:prepare[&quot;${MANIFEST_TEMPLATE}&quot;,&quot;${MANIFEST_FINAL}&quot;]
 
 cd $WORKSPACE/outer_bosh
-bosh -n micro deployment <%= @vars['iaas'] %>
-bosh -n micro deploy $WORKSPACE/stemcell.tgz</command>
+bundle exec bosh -n micro deployment <%= @vars['iaas'] %>
+bundle exec bosh -n micro deploy $WORKSPACE/stemcell.tgz</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers/>
