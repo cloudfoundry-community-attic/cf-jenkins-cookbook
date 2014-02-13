@@ -70,6 +70,7 @@ export RELEASE_NAME
 export RELEASE_VERSION
 export MANIFEST_TEMPLATE=cloudfoundry/cf-ci.yml.erb
 export MANIFEST_FINAL=cloudfoundry/cf.yml
+export INNER_BOSH_UUID=$(bosh status | grep UUID | awk '{print $2}')
 
 export GOPATH=~/go
 export PATH=~/go/bin:$PATH
@@ -94,7 +95,7 @@ cd $WORKSPACE
 
 cat &lt;&lt; EOF &gt; $WORKSPACE/$MANIFEST_TEMPLATE
 &lt;%
-director_uuid = ENV['DIRECTOR_UUID']
+director_uuid = ENV['INNER_BOSH_UUID']
 protocol = "http"
 cf_release = ENV['CF_RELEASE_VERSION']
 cf_services_contrib_release = ENV['CONTRIB_SERVICES_RELEASE_VERSION']
