@@ -63,11 +63,11 @@
     </hudson.plugins.copyartifact.CopyArtifact>
     <hudson.tasks.Shell>
       <command>read STEMCELL_NAME STEMCELL_VERSION &lt;&lt;&lt;$(cat $WORKSPACE/config/stemcell_version.txt)
-read RELEASE_NAME RELEASE_VERSION &lt;&lt;&lt;$(cat $WORKSPACE/config/release_version.txt)
+read CF_RELEASE_NAME CF_RELEASE_VERSION &lt;&lt;&lt;$(cat $WORKSPACE/config/release_version.txt)
 export STEMCELL_NAME
 export STEMCELL_VERSION
-export RELEASE_NAME
-export RELEASE_VERSION
+export CF_RELEASE_NAME
+export CF_RELEASE_VERSION
 export MANIFEST_TEMPLATE=cloudfoundry/cf-ci.yml.erb
 export MANIFEST_FINAL=cloudfoundry/cf.yml
 export INNER_BOSH_UUID=$(bosh status | grep UUID | awk '{print $2}')
