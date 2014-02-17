@@ -7,20 +7,20 @@
     <numToKeep>-1</numToKeep>
     <artifactDaysToKeep>-1</artifactDaysToKeep>
     <artifactNumToKeep>2</artifactNumToKeep>
-  </logRotator>  
+  </logRotator>
   <keepDependencies>false</keepDependencies>
   <properties/>
   <scm class="hudson.plugins.git.GitSCM" plugin="git@2.0.1">
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
-        <url><%= @vars['git_repos']['bosh']['address'] %></url>
-        <credentialsId><%= @vars['git_repos']['bosh']['credential'] %></credentialsId>
+        <url><%= @vars['git_repos']['cf_services_contrib_release']['address'] %></url>
+        <credentialsId><%= @vars['git_repos']['cf_services_contrib_release']['credential'] %></credentialsId>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
     <branches>
       <hudson.plugins.git.BranchSpec>
-        <name><%= @vars['git_repos']['bosh']['branch'] %></name>
+        <name><%= @vars['git_repos']['cf_services_contrib_release']['branch'] %></name>
       </hudson.plugins.git.BranchSpec>
     </branches>
     <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
@@ -35,34 +35,34 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>bundle install --local
+      <command>export DEV_RELEASE_YML=$WORKSPACE/config/dev.yml
 
-cd $WORKSPACE/release
+./update
+
+bundle install --local
 bundle exec bosh -n reset release
 
-cd $WORKSPACE
+cat &lt;&lt; EOF &gt; $DEV_RELEASE_YML
+---
+dev_name: cf_services_contrib
+EOF
 
-export CANDIDATE_BUILD_NUMBER=$((${BUILD_NUMBER} + 3)) # need to increment by 3 to appease bundler later
+bundle exec bosh -n create release --with-tarball --force
 
-<% if @vars['http_proxy'] %>http_proxy=<%= @vars['http_proxy'] %><% end %> bundle exec rake release:create_dev_release
-
-DEV_RELEASE=`ls -t release/dev_releases | tee | head -1`
-RELEASE_PATH=${WORKSPACE}/release/dev_releases
-FULL_RELEASE_PATH=${RELEASE_PATH}/${DEV_RELEASE}
-
-cd $WORKSPACE/release
-bundle exec bosh create release ${FULL_RELEASE_PATH} --with-tarball
+RELEASE_PATH=${WORKSPACE}/dev_releases
+DEV_RELEASE_YML=`ls -t $RELEASE_PATH/*.yml | tee | head -1`
 
 RUBY_SCRIPT=&quot;data = YAML::load(STDIN.read); puts \&quot;#{data[&apos;name&apos;]} #{data[&apos;version&apos;]}\&quot;&quot; 
-RELEASE_PROPS=`cat $FULL_RELEASE_PATH | ruby -ryaml -e &quot;$RUBY_SCRIPT&quot;`
+RELEASE_PROPS=`cat $DEV_RELEASE_YML | ruby -ryaml -e &quot;$RUBY_SCRIPT&quot;`
 read RELEASE_NAME RELEASE_VERSION &lt;&lt;&lt;$(echo $RELEASE_PROPS) 
+echo &quot;${RELEASE_NAME} ${RELEASE_VERSION}&quot; &gt; release_version.txt
 
-mv ${RELEASE_PATH}/${RELEASE_NAME}-${RELEASE_VERSION}.tgz $WORKSPACE/bosh-release.tgz</command>
+mv ${RELEASE_PATH}/${RELEASE_NAME}-${RELEASE_VERSION}.tgz $WORKSPACE/cf-services-contrib-release.tgz</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
     <hudson.tasks.ArtifactArchiver>
-      <artifacts>bosh-release.tgz</artifacts>
+      <artifacts>cf-services-contrib-release.tgz, release_version.txt</artifacts>
       <latestOnly>false</latestOnly>
       <allowEmptyArchive>false</allowEmptyArchive>
     </hudson.tasks.ArtifactArchiver>
