@@ -87,3 +87,11 @@ end
   #jenkins_plugin plugin
   jenkins_command "install-plugin #{plugin}"
 end
+
+# Ensure correct default shell is used in jobs
+template "/var/lib/jenkins/hudson.tasks.Shell.xml" do
+  source "hudson.tasks.Shell.xml"
+  mode 0644
+  owner node['jenkins']['master']['user']
+  group node['jenkins']['master']['user']
+end
