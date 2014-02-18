@@ -8,12 +8,13 @@
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
-        <url>https://github.com/grenzr/bosh.git</url>
+        <url><%= @vars['git_repos']['bosh']['address'] %></url>
+        <credentialsId><%= @vars['git_repos']['bosh']['credential'] %></credentialsId>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
     <branches>
       <hudson.plugins.git.BranchSpec>
-        <name>s3endpoint-hack</name>
+        <name><%= @vars['git_repos']['bosh']['branch'] %></name>
       </hudson.plugins.git.BranchSpec>
     </branches>
     <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
@@ -32,6 +33,9 @@
 bundle install --local --binstubs 
 export CANDIDATE_BUILD_NUMBER=1410 #$((${BUILD_NUMBER} + 3)) # need to increment by 3 to appease bundler later
 export FAKE_MNT=${WORKSPACE}/mnt
+export BOSH_S3_HOST=10.93.237.194:8080
+export BOSH_S3_PROTOCOL=http
+export BOSH_PIPELINE_BUCKET=job/bosh-release-tgz/1/artifact
 bundle exec rake stemcell:build[&apos;<%= @vars['iaas'] %>&apos;,&apos;ubuntu&apos;,&apos;ruby&apos;]</command>
     </hudson.tasks.Shell>
   </builders>
