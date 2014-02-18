@@ -4,7 +4,6 @@ include_recipe 'user'
 include_recipe 'apt'
 include_recipe 'git'
 include_recipe 'git_user'
-#include_recipe 'ssh_known_hosts'
 
 %w{ vim
     curl 
@@ -21,9 +20,12 @@ include_recipe 'git_user'
     genisoimage
     nova-console 
     debootstrap 
-    kpartx
-    golang-go
-    bzr }.each { |package_name| package package_name }
+    kpartx }.each { |package_name| package package_name }
+
+node.set['go']['owner'] = node['jenkins']['master']['user']
+node.set['go']['group'] = node['jenkins']['master']['group']
+
+include_recipe 'golang'
 
 node.set['jenkins']['master']['install_method'] = 'war'
 node.set['jenkins']['master']['version'] = '1.548'
