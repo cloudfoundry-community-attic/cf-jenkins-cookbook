@@ -14,6 +14,14 @@ include_recipe 'git_user'
     maven2 
     default-jdk 
     build-essential 
+    autoconf 
+    bison 
+    libssl-dev 
+    libyaml-dev 
+    libreadline6 
+    libreadline6-dev 
+    zlib1g 
+    zlib1g-dev
     libmysqlclient-dev 
     libpq-dev 
     libsqlite3-dev 
