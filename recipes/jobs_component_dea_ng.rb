@@ -6,8 +6,8 @@ node.set['vagrant']['checksum'] = 'dbd06de0f3560e2d046448d627bca0cbb0ee34b036ef6
 include_recipe 'vagrant'
 
 job_props = {
-  repo: 'https://github.com/cloudfoundry/dea_ng.git',
-  branch: 'master',
+  repo: node['jenkins_cf']['git_repos']['dea_ng']['address'],
+  branch: node['jenkins_cf']['git_repos']['dea_ng']['branch'],
   prepare: %Q[
     git submodule update --init
     bundle install

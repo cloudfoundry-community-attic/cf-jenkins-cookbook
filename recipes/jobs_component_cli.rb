@@ -1,8 +1,8 @@
 # cli (go)
 
 job_props = {
-  repo: 'https://github.com/cloudfoundry/cli.git',
-  branch: 'master',
+  repo: node['jenkins_cf']['git_repos']['cli']['address'],
+  branch: node['jenkins_cf']['git_repos']['cli']['branch'],
   prepare: %Q[
     git submodule update --init --recursive
   ],
