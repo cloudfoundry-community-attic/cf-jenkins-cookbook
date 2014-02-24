@@ -1,5 +1,5 @@
 # Install CF component jobs
-comp_jobs_install = node['jenkins_cf']['comp_jobs']['install']
+comp_jobs_install = node['jenkins_cf']['comp_jobs']
 if comp_jobs_install.count > 0
 
   comp_jobs_install.each do |component|
