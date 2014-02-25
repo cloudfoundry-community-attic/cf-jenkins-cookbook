@@ -39,15 +39,15 @@
 
 ./update
 
-bundle install --local
-bundle exec bosh -n reset release
+gem install bosh_cli --pre
+bosh -n reset release
 
 cat &lt;&lt; EOF &gt; $DEV_RELEASE_YML
 ---
 dev_name: cf_services_contrib
 EOF
 
-bundle exec bosh -n create release --with-tarball --force
+bosh -n create release --with-tarball --force
 
 RELEASE_PATH=${WORKSPACE}/dev_releases
 DEV_RELEASE_YML=`ls -t $RELEASE_PATH/*.yml | tee | head -1`
