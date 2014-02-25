@@ -106,7 +106,7 @@ deploymentname = "cf"
 %&gt;
 EOF
 
-./generate_manifest.sh <%= @vars['iaas'] %> <%= @vars['spiff_templates']['cf_release'] %> >> $WORKSPACE/$MANIFEST_TEMPLATE 
+./cloudfoundry/generate_manifest.sh <%= @vars['iaas'] %> <%= @vars['spiff_templates']['cf_release'] %> >> $WORKSPACE/$MANIFEST_TEMPLATE 
 
 bosh -n target <%= @vars['inner_bosh']['director_ip'] %>
 bosh -n login <%= @vars['inner_bosh']['user'] %> <%= @vars['inner_bosh']['pass'] %>
