@@ -73,7 +73,7 @@ export MANIFEST_FINAL=cloudfoundry/cf.yml
 export INNER_BOSH_UUID=$(bosh status | grep UUID | awk '{print $2}')
 
 export GOPATH=~/go
-export PATH=~/go/bin:$PATH
+export PATH=~/go/bin:/usr/local/go/bin:$PATH
 go get -v github.com/cloudfoundry-incubator/spiff
 
 <%
