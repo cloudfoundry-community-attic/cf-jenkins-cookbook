@@ -51,8 +51,8 @@ fi
 
 gem install bosh_cli --pre
 
-bosh -n target <%= ENV['INNER_BOSH_IP'] %>
-bosh -n login admin admin
+bosh -n target <%= @vars['inner_bosh']['director_ip'] %>
+bosh -n login <%= @vars['inner_bosh']['user'] %> <%= @vars['inner_bosh']['pass'] %>
 
  bosh -n upload release $WORKSPACE/$LATEST_RELEASE
 
