@@ -6,7 +6,10 @@ job_props = {
   prepare: %Q[
     git submodule update --init --recursive
   ],
-  test: './bin/go test -bench . -benchmem cf/...',
+  test: %Q[
+  export PATH=/usr/local/go/bin:$PATH
+  ./bin/go test -bench . -benchmem cf/...
+  ]
 }
 
 jenkins_cf_job 'cli' do
