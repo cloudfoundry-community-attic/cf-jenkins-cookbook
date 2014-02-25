@@ -48,6 +48,7 @@
     <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.3.1">
       <colorMapName>xterm</colorMapName>
     </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+    <% if @vars[:use_rbenv] %>
     <ruby-proxy-object>
       <ruby-object ruby-class="Jenkins::Tasks::BuildWrapperProxy" pluginid="rbenv">
         <pluginid pluginid="rbenv" ruby-class="String">rbenv</pluginid>
@@ -63,5 +64,6 @@
         </object>
       </ruby-object>
     </ruby-proxy-object>
+    <% end %>
   </buildWrappers>
 </project>

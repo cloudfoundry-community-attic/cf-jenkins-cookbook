@@ -10,6 +10,7 @@ job_props = {
     bundle install
   ],
   test: 'bundle exec parallel_rspec spec -s integration',
+  use_rbenv: true
 }
 
 jenkins_cf_job 'cloud_controller_ng' do

@@ -17,6 +17,7 @@ job_props = {
     bundle exec rake test_vm
   ],
   test: '',
+  use_rbenv: true
 }
 
 jenkins_cf_job 'dea_ng' do
