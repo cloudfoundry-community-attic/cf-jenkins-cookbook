@@ -4,44 +4,6 @@
   <description></description>
   <keepDependencies>false</keepDependencies>
   <properties/>
-  <scm class="hudson.plugins.git.GitSCM" plugin="git@1.5.0">
-    <configVersion>2</configVersion>
-    <userRemoteConfigs>
-      <hudson.plugins.git.UserRemoteConfig>
-        <name></name>
-        <refspec></refspec>
-        <url><%= @vars['git_repos']['bosh']['address'] %></url>
-        <credentialsId><%= @vars['git_repos']['bosh']['credential'] %></credentialsId>
-      </hudson.plugins.git.UserRemoteConfig>
-    </userRemoteConfigs>
-    <branches>
-      <hudson.plugins.git.BranchSpec>
-        <name><%= @vars['git_repos']['bosh']['branch'] %></name>
-      </hudson.plugins.git.BranchSpec>
-    </branches>
-    <disableSubmodules>false</disableSubmodules>
-    <recursiveSubmodules>false</recursiveSubmodules>
-    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
-    <authorOrCommitter>false</authorOrCommitter>
-    <clean>false</clean>
-    <wipeOutWorkspace>false</wipeOutWorkspace>
-    <pruneBranches>false</pruneBranches>
-    <remotePoll>false</remotePoll>
-    <ignoreNotifyCommit>false</ignoreNotifyCommit>
-    <useShallowClone>false</useShallowClone>
-    <buildChooser class="hudson.plugins.git.util.DefaultBuildChooser"/>
-    <gitTool>Default</gitTool>
-    <submoduleCfg class="list"/>
-    <relativeTargetDir></relativeTargetDir>
-    <reference></reference>
-    <excludedRegions></excludedRegions>
-    <excludedUsers></excludedUsers>
-    <gitConfigName></gitConfigName>
-    <gitConfigEmail></gitConfigEmail>
-    <skipTag>false</skipTag>
-    <includedRegions></includedRegions>
-    <scmName></scmName>
-  </scm>
   <canRoam>true</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
@@ -49,32 +11,27 @@
   <triggers/>
   <concurrentBuild>false</concurrentBuild>
   <builders>
+    <hudson.plugins.copyartifact.CopyArtifact plugin="copyartifact@1.30">
+      <project>bosh-release-tgz</project>
+      <filter>bosh-release.tgz, release_version.txt</filter>
+      <target></target>
+      <selector class="hudson.plugins.copyartifact.StatusBuildSelector"/>
+      <doNotFingerprintArtifacts>false</doNotFingerprintArtifacts>
+    </hudson.plugins.copyartifact.CopyArtifact>    
     <hudson.tasks.Shell>
       <command>
-cd $WORKSPACE/release
-bosh -n reset release
+if ! gem spec bosh_cli > /dev/null 2&gt;&1 ; then
+  gem install bosh_cli --pre
+fi
 
-cd $WORKSPACE
+export OUTER_BOSH_HOST=<%= @vars['outer_bosh']['director_ip'] %>
+export OUTER_BOSH_USER=<%= @vars['outer_bosh']['user'] %>
+export OUTER_BOSH_PASS=<%= @vars['outer_bosh']['pass'] %>
 
-export CANDIDATE_BUILD_NUMBER=$((${BUILD_NUMBER} + 3)) # need to increment by 3 to appease bundler later
-bundle install --local
-<% if @vars['http_proxy'] %>http_proxy=<%= @vars['http_proxy'] %><% end %> bundle exec rake release:create_dev_release
-DEV_RELEASE=`ls -t release/dev_releases | tee | head -1`
-RELEASE_PATH=${WORKSPACE}/release/dev_releases/${DEV_RELEASE}
-
-export MICRO_BOSH_HOST=<%= @vars['outer_bosh']['director_ip'] %>
-export MICRO_BOSH_USER=<%= @vars['outer_bosh']['user'] %>
-export MICRO_BOSH_PASS=<%= @vars['outer_bosh']['pass'] %>
-
-bosh -n target $MICRO_BOSH_HOST 
-bosh -n login $MICRO_BOSH_USER $MICRO_BOSH_PASS 
-bosh -n upload release ${RELEASE_PATH} --rebase
-
-RUBY_SCRIPT=&quot;data = YAML::load(STDIN.read); puts \&quot;#{data[&apos;name&apos;]} #{data[&apos;version&apos;]}\&quot;&quot; 
-RELEASE_PROPS=`cat ${RELEASE_PATH} | ruby -ryaml -e &quot;$RUBY_SCRIPT&quot;`
-read RELEASE_NAME RELEASE_VERSION &lt;&lt;&lt;$(echo $RELEASE_PROPS) 
-
-echo &quot;${RELEASE_NAME} ${RELEASE_VERSION}&quot; &gt; release_version.txt</command>
+bosh -n target $OUTER_BOSH_HOST 
+bosh -n login $OUTER_BOSH_USER $OUTER_BOSH_PASS 
+bosh -n upload release bosh-release.tgz --rebase
+</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>

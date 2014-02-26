@@ -57,12 +57,15 @@ RUBY_SCRIPT=&quot;data = YAML::load(STDIN.read); puts \&quot;#{data[&apos;name&a
 RELEASE_PROPS=`cat $FULL_RELEASE_PATH | ruby -ryaml -e &quot;$RUBY_SCRIPT&quot;`
 read RELEASE_NAME RELEASE_VERSION &lt;&lt;&lt;$(echo $RELEASE_PROPS) 
 
+cd $WORKSPACE
+echo "${RELEASE_NAME} ${RELEASE_VERSION}" > release_version.txt
+
 mv ${RELEASE_PATH}/${RELEASE_NAME}-${RELEASE_VERSION}.tgz $WORKSPACE/bosh-release.tgz</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
     <hudson.tasks.ArtifactArchiver>
-      <artifacts>bosh-release.tgz</artifacts>
+      <artifacts>bosh-release.tgz, release_version.txt</artifacts>
       <latestOnly>false</latestOnly>
       <allowEmptyArchive>false</allowEmptyArchive>
     </hudson.tasks.ArtifactArchiver>
