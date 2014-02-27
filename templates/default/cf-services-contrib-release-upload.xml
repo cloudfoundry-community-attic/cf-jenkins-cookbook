@@ -49,7 +49,9 @@ else
   LATEST_RELEASE=`git diff-tree --no-commit-id --name-only -r $LATEST_RELEASE_GIT | grep -e &apos;releases\/cf-services-contrib.*.yml&apos;`
 fi
 
-gem install bosh_cli --pre
+if ! gem spec bosh_cli > /dev/null 2&gt;&1 ; then
+  gem install bosh_cli --pre
+fi
 
 bosh -n target <%= @vars['inner_bosh']['director_ip'] %>
 bosh -n login <%= @vars['inner_bosh']['user'] %> <%= @vars['inner_bosh']['pass'] %>
