@@ -46,44 +46,22 @@
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <triggers>
-    <org.jenkinsci.plugins.scripttrigger.ScriptTrigger plugin="scripttrigger@0.31">
-      <spec>H * * * *</spec>
-      <labelRestriction>false</labelRestriction>
-      <enableConcurrentBuild>false</enableConcurrentBuild>
-      <script>cd $WORKSPACE 
-git fetch 
-RELEASES=`git diff ... origin --name-only --diff-filter=A releases/ | grep -P &quot;cf-[0-9]*.yml&quot;` 
-RELEASE_FILES=(${RELEASES//\n/ }) 
-LATEST_RELEASE=${RELEASE_FILES[${#RELEASE_FILES[@]} - 1]}
-echo $LATEST_RELEASE &gt; latest_release.txt</script>
-    </org.jenkinsci.plugins.scripttrigger.ScriptTrigger>
-  </triggers>
   <concurrentBuild>false</concurrentBuild>
   <builders>
+    <hudson.plugins.copyartifact.CopyArtifact plugin="copyartifact@1.30">
+      <project>cf-release-tgz</project>
+      <filter>cf-release.tgz, release_version.txt</filter>
+      <target></target>
+      <selector class="hudson.plugins.copyartifact.StatusBuildSelector"/>
+      <doNotFingerprintArtifacts>false</doNotFingerprintArtifacts>
+    </hudson.plugins.copyartifact.CopyArtifact>
     <hudson.tasks.Shell>
-      <command>LATEST_RELEASE_FILE=&quot;$WORKSPACE/latest_release.txt&quot;
-if [ -f $LATEST_RELEASE_FILE ]; 
-then
-  LATEST_RELEASE=`cat $LATEST_RELEASE_FILE`
-else
-  LATEST_RELEASE_GIT=`git rev-list --reverse --tags --max-count=1 releases/*.yml`
-  LATEST_RELEASE=`git diff-tree --no-commit-id --name-only -r $LATEST_RELEASE_GIT | grep -e &apos;releases\/cf.*.yml&apos;`
-fi
+      <command>
+bundle exec bosh -n target <%= @vars['inner_bosh']['director_ip'] %>
+bundle exec bosh -n login <%= @vars['inner_bosh']['user'] %> <%= @vars['inner_bosh']['pass'] %>
 
-bundle update
-
-bosh -n target <%= @vars['inner_bosh']['director_ip'] %>
-bosh -n login <%= @vars['inner_bosh']['user'] %> <%= @vars['inner_bosh']['pass'] %>
-
-<% if @vars['http_proxy'] %>http_proxy=<%= @vars['http_proxy'] %><% end %> bosh -n upload release $WORKSPACE/$LATEST_RELEASE
-
-cd $WORKSPACE
-RUBY_SCRIPT=&quot;data = YAML::load(STDIN.read); puts \&quot;#{data[&apos;name&apos;]} #{data[&apos;version&apos;]}\&quot;&quot; 
-RELEASE_PROPS=`cat $WORKSPACE/$LATEST_RELEASE | ruby -ryaml -e &quot;$RUBY_SCRIPT&quot;`
-read RELEASE_NAME RELEASE_VERSION &lt;&lt;&lt;$(echo $RELEASE_PROPS) 
-
-echo &quot;${RELEASE_NAME} ${RELEASE_VERSION}&quot; &gt; release_version.txt</command>
+<% if @vars['http_proxy'] %>http_proxy=<%= @vars['http_proxy'] %><% end %> bosh -n upload release cf-release.tgz
+</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
