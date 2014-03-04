@@ -43,7 +43,15 @@
       </command>
     </hudson.tasks.Shell>
   </builders>
-  <publishers/>
+  <publishers>
+    <% if @vars[:artifact] %>
+    <hudson.tasks.ArtifactArchiver>
+    <artifacts><%= @vars[:artifact] %></artifacts>
+    <latestOnly>false</latestOnly>
+    <allowEmptyArchive>false</allowEmptyArchive>
+    </hudson.tasks.ArtifactArchiver>
+    <% end %>    
+  </publishers>
   <buildWrappers>
     <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.3.1">
       <colorMapName>xterm</colorMapName>
