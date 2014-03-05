@@ -57,7 +57,7 @@ bundle exec rake stemcell:build[&apos;<%= @vars['iaas'] %>&apos;,&apos;ubuntu&ap
           <rbenv__repository pluginid="rbenv" ruby-class="String">https://github.com/sstephenson/rbenv.git</rbenv__repository>
           <ruby__build__revision pluginid="rbenv" ruby-class="String">master</ruby__build__revision>
           <gem__list pluginid="rbenv" ruby-class="String">bundler,rake</gem__list>
-          <version pluginid="rbenv" ruby-class="String">1.9.3-p448</version>
+          <version pluginid="rbenv" ruby-class="String">1.9.3-p484</version>
           <ignore__local__version ruby-class="FalseClass" pluginid="rbenv"/>
         </object>
       </ruby-object>
