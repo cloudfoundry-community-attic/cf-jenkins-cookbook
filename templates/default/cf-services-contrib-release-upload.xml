@@ -25,29 +25,18 @@
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers>
-    <org.jenkinsci.plugins.scripttrigger.ScriptTrigger plugin="scripttrigger@0.31">
-      <spec>H * * * *</spec>
-      <labelRestriction>false</labelRestriction>
-      <enableConcurrentBuild>false</enableConcurrentBuild>
-      <script>cd $WORKSPACE 
-git fetch 
-RELEASES=`git diff ... origin --name-only --diff-filter=A releases/ | grep -P &quot;cf-services-contrib-[0-9]*.yml&quot;` 
-RELEASE_FILES=(${RELEASES//\n/ }) 
-LATEST_RELEASE=${RELEASE_FILES[${#RELEASE_FILES[@]} - 1]}
-echo $LATEST_RELEASE &gt; latest_release.txt</script>
-    </org.jenkinsci.plugins.scripttrigger.ScriptTrigger>
   </triggers>
   <concurrentBuild>false</concurrentBuild>
   <builders>
+    <hudson.plugins.copyartifact.CopyArtifact plugin="copyartifact@1.30">
+      <project>cf-services-contrib-release-tgz</project>
+      <filter>cf-services-contrib-release.tgz, contrib_services_release_version.txt</filter>
+      <target></target>
+      <selector class="hudson.plugins.copyartifact.StatusBuildSelector"/>
+      <doNotFingerprintArtifacts>false</doNotFingerprintArtifacts>
+    </hudson.plugins.copyartifact.CopyArtifact>    
     <hudson.tasks.Shell>
-      <command>LATEST_RELEASE_FILE=&quot;$WORKSPACE/latest_release.txt&quot;
-if [ -f $LATEST_RELEASE_FILE ]; 
-then
-  LATEST_RELEASE=`cat $LATEST_RELEASE_FILE`
-else
-  LATEST_RELEASE_GIT=`git rev-list --reverse --all --max-count=1 releases/*.yml`
-  LATEST_RELEASE=`git diff-tree --no-commit-id --name-only -r $LATEST_RELEASE_GIT | grep -e &apos;releases\/cf-services-contrib.*.yml&apos;`
-fi
+      <command>
 
 if ! gem spec bosh_cli > /dev/null 2&gt;&amp;1 ; then
   gem install bosh_cli --pre
@@ -56,14 +45,8 @@ fi
 bosh -n target <%= @vars['inner_bosh']['director_ip'] %>
 bosh -n login <%= @vars['inner_bosh']['user'] %> <%= @vars['inner_bosh']['pass'] %>
 
- bosh -n upload release $WORKSPACE/$LATEST_RELEASE
-
-cd $WORKSPACE
-RUBY_SCRIPT=&quot;data = YAML::load(STDIN.read); puts \&quot;#{data[&apos;name&apos;]} #{data[&apos;version&apos;]}\&quot;&quot; 
-RELEASE_PROPS=`cat $WORKSPACE/$LATEST_RELEASE | ruby -ryaml -e &quot;$RUBY_SCRIPT&quot;`
-read RELEASE_NAME RELEASE_VERSION &lt;&lt;&lt;$(echo $RELEASE_PROPS) 
-
-echo &quot;${RELEASE_NAME} ${RELEASE_VERSION}&quot; &gt; contrib_services_release_version.txt</command>
+ bosh -n upload release $WORKSPACE/cf-services-contrib-release.tgz
+</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>

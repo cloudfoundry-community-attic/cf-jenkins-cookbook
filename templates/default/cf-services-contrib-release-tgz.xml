@@ -55,14 +55,14 @@ DEV_RELEASE_YML=`ls -t $RELEASE_PATH/*.yml | tee | head -1`
 RUBY_SCRIPT=&quot;data = YAML::load(STDIN.read); puts \&quot;#{data[&apos;name&apos;]} #{data[&apos;version&apos;]}\&quot;&quot; 
 RELEASE_PROPS=`cat $DEV_RELEASE_YML | ruby -ryaml -e &quot;$RUBY_SCRIPT&quot;`
 read RELEASE_NAME RELEASE_VERSION &lt;&lt;&lt;$(echo $RELEASE_PROPS) 
-echo &quot;${RELEASE_NAME} ${RELEASE_VERSION}&quot; &gt; release_version.txt
+echo &quot;${RELEASE_NAME} ${RELEASE_VERSION}&quot; &gt; contrib_services_release_version.txt
 
 mv ${RELEASE_PATH}/${RELEASE_NAME}-${RELEASE_VERSION}.tgz $WORKSPACE/cf-services-contrib-release.tgz</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
     <hudson.tasks.ArtifactArchiver>
-      <artifacts>cf-services-contrib-release.tgz, release_version.txt</artifacts>
+      <artifacts>cf-services-contrib-release.tgz, contrib_services_release_version.txt</artifacts>
       <latestOnly>false</latestOnly>
       <allowEmptyArchive>false</allowEmptyArchive>
     </hudson.tasks.ArtifactArchiver>
