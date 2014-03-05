@@ -49,7 +49,7 @@ else
   LATEST_RELEASE=`git diff-tree --no-commit-id --name-only -r $LATEST_RELEASE_GIT | grep -e &apos;releases\/cf-services-contrib.*.yml&apos;`
 fi
 
-if ! gem spec bosh_cli > /dev/null 2&gt;&1 ; then
+if ! gem spec bosh_cli > /dev/null 2&gt;&amp;1 ; then
   gem install bosh_cli --pre
 fi
 

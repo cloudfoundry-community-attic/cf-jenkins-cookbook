@@ -20,7 +20,7 @@
     </hudson.plugins.copyartifact.CopyArtifact>    
     <hudson.tasks.Shell>
       <command>
-if ! gem spec bosh_cli > /dev/null 2&gt;&1 ; then
+if ! gem spec bosh_cli > /dev/null 2&gt;&amp;1 ; then
   gem install bosh_cli --pre
 fi
 
