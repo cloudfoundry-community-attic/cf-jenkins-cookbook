@@ -23,6 +23,7 @@
 if ! gem spec bosh_cli > /dev/null 2&gt;&amp;1 ; then
   gem install bosh_cli --pre
 fi
+rbenv rehash
 
 export OUTER_BOSH_HOST=<%= @vars['outer_bosh']['director_ip'] %>
 export OUTER_BOSH_USER=<%= @vars['outer_bosh']['user'] %>
