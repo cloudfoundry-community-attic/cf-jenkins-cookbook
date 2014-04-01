@@ -62,7 +62,11 @@
       <selector class="hudson.plugins.copyartifact.StatusBuildSelector"/>
     </hudson.plugins.copyartifact.CopyArtifact>
     <hudson.tasks.Shell>
-      <command>read STEMCELL_NAME STEMCELL_VERSION &lt;&lt;&lt;$(cat $WORKSPACE/config/stemcell_version.txt)
+      <command>
+bosh -n target <%= @vars['inner_bosh']['director_ip'] %>
+bosh -n login <%= @vars['inner_bosh']['user'] %> <%= @vars['inner_bosh']['pass'] %>
+
+read STEMCELL_NAME STEMCELL_VERSION &lt;&lt;&lt;$(cat $WORKSPACE/config/stemcell_version.txt)
 read CF_RELEASE_NAME CF_RELEASE_VERSION &lt;&lt;&lt;$(cat $WORKSPACE/config/release_version.txt)
 export STEMCELL_NAME
 export STEMCELL_VERSION
@@ -71,6 +75,9 @@ export CF_RELEASE_VERSION
 export MANIFEST_TEMPLATE=cloudfoundry/cf-ci.yml.erb
 export MANIFEST_FINAL=cloudfoundry/cf.yml
 export INNER_BOSH_UUID=$(bosh status | grep UUID | awk '{print $2}')
+export CC_IP=<%= @vars['cloud_controller']['ip'] %>
+export CC_ROOT_DOMAIN=<%= @vars['cloud_controller']['root_domain'] %>
+export CF_PROTOCOL=<%= @vars['cloud_controller']['protocol'] %>
 
 export GOPATH=~/go
 export PATH=~/go/bin:/usr/local/go/bin:$PATH
@@ -96,7 +103,7 @@ cd $WORKSPACE
 cat &lt;&lt; EOF &gt; $WORKSPACE/$MANIFEST_TEMPLATE
 &lt;%
 director_uuid = ENV['INNER_BOSH_UUID']
-protocol = "http"
+protocol = ENV['CF_PROTOCOL']
 cf_release = ENV['CF_RELEASE_VERSION']
 cf_services_contrib_release = ENV['CONTRIB_SERVICES_RELEASE_VERSION']
 ip_address = ENV['CC_IP']
@@ -143,7 +150,7 @@ bosh -n deploy</command>
 <rbenv__revision pluginid="rbenv" ruby-class="String">master</rbenv__revision>
 <ruby__build__revision pluginid="rbenv" ruby-class="String">master</ruby__build__revision>
 <gem__list pluginid="rbenv" ruby-class="String">bundler,rake</gem__list>
-<version pluginid="rbenv" ruby-class="String">1.9.3-p448</version>
+<version pluginid="rbenv" ruby-class="String">1.9.3-p484</version>
 <ignore__local__version ruby-class="FalseClass" pluginid="rbenv"/>
 </object>
 </ruby-object>
