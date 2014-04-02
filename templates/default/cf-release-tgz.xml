@@ -25,7 +25,11 @@
     </branches>
     <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
     <submoduleCfg class="list"/>
-    <extensions/>
+    <extensions>
+      <hudson.plugins.git.extensions.impl.LocalBranch>
+        <localBranch><%= @vars['git_repos']['cf_release']['branch'] %></localBranch>
+      </hudson.plugins.git.extensions.impl.LocalBranch>
+    </extensions>
   </scm>
   <canRoam>true</canRoam>
   <disabled>false</disabled>
@@ -35,7 +39,10 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>export DEV_RELEASE_YML=$WORKSPACE/config/dev.yml
+      <command>
+git branch --set-upstream <%= @vars['git_repos']['cf_release']['branch'] %> origin/<%= @vars['git_repos']['cf_release']['branch'] %>
+      
+export DEV_RELEASE_YML=$WORKSPACE/config/dev.yml
 
 ./update
 
