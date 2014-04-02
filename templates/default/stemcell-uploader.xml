@@ -19,7 +19,7 @@
       <selector class="hudson.plugins.copyartifact.StatusBuildSelector"/>
     </hudson.plugins.copyartifact.CopyArtifact>
     <hudson.tasks.Shell>
-      <command>gem install bosh_cli --pre
+      <command>gem install bosh_cli
 rbenv rehash
 
 bosh -n target <%= @vars[:director_ip] %>

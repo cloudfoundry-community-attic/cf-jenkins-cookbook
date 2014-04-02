@@ -39,7 +39,7 @@
 
 ./update
 
-gem install bosh_cli --pre
+gem install bosh_cli
 bosh -n reset release
 
 cat &lt;&lt; EOF &gt; $DEV_RELEASE_YML

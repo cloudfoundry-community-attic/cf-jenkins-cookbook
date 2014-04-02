@@ -21,7 +21,7 @@
     <hudson.tasks.Shell>
       <command>
 if ! gem spec bosh_cli > /dev/null 2&gt;&amp;1 ; then
-  gem install bosh_cli --pre
+  gem install bosh_cli 
 fi
 rbenv rehash
 

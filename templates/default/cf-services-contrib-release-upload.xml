@@ -39,7 +39,7 @@
       <command>
 
 if ! gem spec bosh_cli > /dev/null 2&gt;&amp;1 ; then
-  gem install bosh_cli --pre
+  gem install bosh_cli
 fi
 
 bosh -n target <%= @vars['inner_bosh']['director_ip'] %>
