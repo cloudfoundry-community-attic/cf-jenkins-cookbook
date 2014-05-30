@@ -14,7 +14,7 @@ job_modes = node['jenkins_cf']['jobs']
 end
 
 # Install core BOSH deploy jobs
-%w{ cf-deploy bosh-inner-deploy bosh-outer-deploy }.each do |deployment_job|
+%w{ cf-deploy cf-contrib-deploy bosh-inner-deploy bosh-outer-deploy }.each do |deployment_job|
   jenkins_cf_job "#{deployment_job}" do
     config node['jenkins_cf']
     template "#{deployment_job}.xml"
