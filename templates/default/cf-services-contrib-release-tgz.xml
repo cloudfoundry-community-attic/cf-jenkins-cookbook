@@ -35,7 +35,9 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>export DEV_RELEASE_YML=$WORKSPACE/config/dev.yml
+        <command>
+<% if @vars['mode'] == 'dev' %>
+export DEV_RELEASE_YML=$WORKSPACE/config/dev.yml
 
 ./update
 
@@ -50,11 +52,28 @@ EOF
 bosh -n create release --with-tarball --force
 
 RELEASE_PATH=${WORKSPACE}/dev_releases
-DEV_RELEASE_YML=`ls -t $RELEASE_PATH/*.yml | tee | head -1`
+RELEASE_YML=`ls -t $RELEASE_PATH/*.yml | tee | head -1`
+
+<% else %>
+
+RELEASE_PATH=${WORKSPACE}/releases
+LATEST_RELEASE_FILE=&quot;$WORKSPACE/latest_release.txt&quot;
+if [ -f $LATEST_RELEASE_FILE ]; 
+then
+  RELEASE_YML=`cat $LATEST_RELEASE_FILE`
+else
+  LATEST_RELEASE_GIT=`git rev-list --reverse --tags --max-count=1 releases/*.yml`
+  RELEASE_YML=`git diff-tree --no-commit-id --name-only -r $LATEST_RELEASE_GIT | grep -e &apos;releases\/cf-services-contrib.*.yml&apos;` 
+fi
+
+bundle update
+
+<% if @vars['http_proxy'] %>http_proxy=<%= @vars['http_proxy'] %><% end %> bosh -n create release $WORKSPACE/$RELEASE_YML --with-tarball
 
 RUBY_SCRIPT=&quot;data = YAML::load(STDIN.read); puts \&quot;#{data[&apos;name&apos;]} #{data[&apos;version&apos;]}\&quot;&quot; 
-RELEASE_PROPS=`cat $DEV_RELEASE_YML | ruby -ryaml -e &quot;$RUBY_SCRIPT&quot;`
+RELEASE_PROPS=`cat $RELEASE_YML | ruby -ryaml -e &quot;$RUBY_SCRIPT&quot;`
 read RELEASE_NAME RELEASE_VERSION &lt;&lt;&lt;$(echo $RELEASE_PROPS) 
+
 echo &quot;${RELEASE_NAME} ${RELEASE_VERSION}&quot; &gt; contrib_services_release_version.txt
 
 mv ${RELEASE_PATH}/${RELEASE_NAME}-${RELEASE_VERSION}.tgz $WORKSPACE/cf-services-contrib-release.tgz</command>
