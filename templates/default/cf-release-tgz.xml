@@ -51,7 +51,7 @@ bundle exec bosh -n reset release
 
 cat &lt;&lt; EOF &gt; $DEV_RELEASE_YML
 ---
-dev_name: cf
+dev_name: <%= @vars['cf-release']['dev_name'] %>
 EOF
 
 bundle exec bosh -n create release --with-tarball --force
