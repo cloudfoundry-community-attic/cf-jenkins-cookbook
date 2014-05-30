@@ -2,8 +2,8 @@
 
 %w{ lxc }.each { |package_name| package package_name }
 
-node.set['vagrant']['url'] = 'https://dl.bintray.com/mitchellh/vagrant/vagrant_1.4.3_x86_64.deb'
-node.set['vagrant']['checksum'] = 'dbd06de0f3560e2d046448d627bca0cbb0ee34b036ef605aa87ed20e6ad2684b'
+node.set['vagrant']['url'] = 'https://dl.bintray.com/mitchellh/vagrant/vagrant_1.5.4_x86_64.deb'
+node.set['vagrant']['checksum'] = '08142c24d6d26a0c22edf74cc912d1fd4bbef533751fcaf74dbc1418f4d2da1f'
 node.set['vagrant']['plugins'] = [
   "vagrant-lxc",
   {"name" => "vagrant-lxc", "version" => "0.7.0"}
