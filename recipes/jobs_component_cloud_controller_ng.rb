@@ -13,7 +13,7 @@ job_props = {
   use_rbenv: true
 }
 
-jenkins_cf_job 'cloud_controller_ng' do
+jenkins_cf_job 'component.cc_ng' do
   config job_props
   template 'cf-component.xml'
 end

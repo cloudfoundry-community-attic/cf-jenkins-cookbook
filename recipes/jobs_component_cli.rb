@@ -15,7 +15,7 @@ job_props = {
   artifact: 'out/cf'
 }
 
-jenkins_cf_job 'cli' do
+jenkins_cf_job 'component.cli' do
   config job_props
   template 'cf-component.xml'
 end
