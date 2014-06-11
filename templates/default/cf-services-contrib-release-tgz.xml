@@ -66,6 +66,8 @@ else
   RELEASE_YML=`git diff-tree --no-commit-id --name-only -r $LATEST_RELEASE_GIT | grep -e &apos;releases\/cf-services-contrib.*.yml&apos;` 
 fi
 
+<% end %>
+
 bundle update
 
 <% if @vars['http_proxy'] %>http_proxy=<%= @vars['http_proxy'] %><% end %> bosh -n create release $WORKSPACE/$RELEASE_YML --with-tarball
