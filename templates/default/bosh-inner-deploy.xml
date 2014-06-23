@@ -70,8 +70,10 @@ export RELEASE_NAME
 export RELEASE_VERSION
 cd $WORKSPACE 
 
-bundle install
+bundle update
 
+export DEPLOYMENT_NAME=<%= @vars['inner_bosh']['deployment_name'] %>
+export DEPLOYMENT_DESC=<%= @vars['inner_bosh']['deployment_description'] %>
 export MANIFEST_TEMPLATE=<%= @vars['manifest_templates']['inner_bosh'] %>
 export MANIFEST_FINAL=inner_bosh/<%= @vars['iaas'] %>/bosh.yml
 export OUTER_BOSH_HOST=<%= @vars['outer_bosh']['director_ip'] %>
@@ -111,10 +113,10 @@ export POWERDNS_HOST=<%= @vars['inner_bosh']['powerdns_ip'] %>
 
 rake manifest:prepare[&quot;${MANIFEST_TEMPLATE}&quot;,&quot;${MANIFEST_FINAL}&quot;]
 
-bosh -n target $OUTER_BOSH_HOST 
-bosh -n login $OUTER_BOSH_USER $OUTER_BOSH_PASS 
-bosh -n deployment $WORKSPACE/${MANIFEST_FINAL}
-bosh -n deploy</command>
+bundle exec bosh -n target $OUTER_BOSH_HOST 
+bundle exec bosh -n login $OUTER_BOSH_USER $OUTER_BOSH_PASS 
+bundle exec bosh -n deployment $WORKSPACE/${MANIFEST_FINAL}
+bundle exec bosh -n deploy</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers/>
