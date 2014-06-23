@@ -19,8 +19,8 @@ case node['jenkins_cf']['iaas']
 
         echo '{ "provider": "vSphere" }' > metadata.json
         tar cvzf dummy.box ./metadata.json
-        vagrant box remove dummy --provider=vSphere
-        vagrant box add dummy dummy.box
+        vagrant box remove dummy --provider=vSphere || true
+        vagrant box add dummy dummy.box || true
 
         export DEA_TEST_VM_IP="#{config_props['test_vm_ip']}"
         export DEA_VS_DC="#{config_props['vsphere_props']['data_center_name']}"
