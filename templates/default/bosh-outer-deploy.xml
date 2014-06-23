@@ -50,34 +50,36 @@ export MANIFEST_FINAL=outer_bosh/<%= @vars['iaas'] %>/micro_bosh.yml
     export OS_PASSWORD=<%= @vars['openstack']['api_key'] %>
     export OS_TENANT=<%= @vars['openstack']['tenant'] %>
     export KEY_NAME=outerbosh
-    export PRIVATE_KEY_PATH=${WORKSPACE}/${KEY_NAME}.pem    
+    export PRIVATE_KEY_PATH=${WORKSPACE}/${KEY_NAME}.pem
     ssh-keygen -t rsa -f ${PRIVATE_KEY_PATH} -q -N &quot;&quot;
     nova keypair-delete ${KEY_NAME} | exit 0
-    nova keypair-add --pub_key ${WORKSPACE}/outerbosh.pem.pub ${KEY_NAME} | exit 0    
+    nova keypair-add --pub_key ${WORKSPACE}/outerbosh.pem.pub ${KEY_NAME} | exit 0
     <%
   when 'vsphere'
     %>
     export VSPHERE_CONNECTION='<%= JSON.generate(@vars['iaas_config']['connection']['outer_bosh']['vcenters']) %>'
     RUBY_SCRIPT="require 'json'; data = YAML::load(STDIN.read); vconn = JSON.parse(ENV['VSPHERE_CONNECTION']); data['cloud']['properties']['vcenters'] = vconn; File.open(ENV['MANIFEST_TEMPLATE'], 'w') { |file| file.write(data.to_yaml) }"
-    cat ${MANIFEST_TEMPLATE} | ruby -ryaml -e "$RUBY_SCRIPT"    
+    cat ${MANIFEST_TEMPLATE} | ruby -ryaml -e "$RUBY_SCRIPT"
     <%
-  end 
+  end
 %>
 
 rake manifest:prepare[&quot;${MANIFEST_TEMPLATE}&quot;,&quot;${MANIFEST_FINAL}&quot;]
 
 cd $WORKSPACE/outer_bosh
 bundle exec bosh -n micro deployment <%= @vars['iaas'] %>
-bundle exec bosh -n micro deploy $WORKSPACE/stemcell.tgz</command>
+bundle exec bosh -n micro deploy $WORKSPACE/stemcell.tgz --update-if-exists</command>
     </hudson.tasks.Shell>
   </builders>
-  <publishers/>
+  <publishers>
+    <hudson.tasks.ArtifactArchiver>
+    <artifacts>outer_bosh/bosh-deployments.yml</artifacts>
+    <latestOnly>false</latestOnly>
+    <allowEmptyArchive>false</allowEmptyArchive>
+    <onlyIfSuccessful>true</onlyIfSuccessful>
+    </hudson.tasks.ArtifactArchiver>
+  </publishers>
   <buildWrappers>
-    <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.19">
-      <deleteDirs>false</deleteDirs>
-      <cleanupParameter></cleanupParameter>
-      <externalDelete></externalDelete>
-    </hudson.plugins.ws__cleanup.PreBuildCleanup>
     <ruby-proxy-object>
       <ruby-object ruby-class="Jenkins::Tasks::BuildWrapperProxy" pluginid="rbenv">
         <object ruby-class="RbenvWrapper" pluginid="rbenv">
