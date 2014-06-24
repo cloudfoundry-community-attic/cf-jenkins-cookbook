@@ -37,8 +37,8 @@
     <hudson.tasks.Shell>
       <command>bundle install
 
-export DEPLOYMENT_NAME=<%= @vars['outer_bosh']['deployment_name'] %>
-export DEPLOYMENT_DESC=<%= @vars['outer_bosh']['deployment_description'] %>
+export DEPLOYMENT_NAME="<%= @vars['outer_bosh']['deployment_name'] %>"
+export DEPLOYMENT_DESC="<%= @vars['outer_bosh']['deployment_description'] %>"
 export OUTER_BOSH_IP=<%= @vars['outer_bosh']['director_ip'] %>
 export MANIFEST_TEMPLATE=<%= @vars['manifest_templates']['outer_bosh'] %>
 export MANIFEST_FINAL=outer_bosh/<%= @vars['iaas'] %>/micro_bosh.yml
