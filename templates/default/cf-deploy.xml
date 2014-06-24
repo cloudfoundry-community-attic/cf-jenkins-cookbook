@@ -109,7 +109,7 @@ cf_services_contrib_release = ENV['CONTRIB_SERVICES_RELEASE_VERSION']
 ip_address = ENV['CC_IP']
 common_password = "c1oudc0wc1oudc0w"
 root_domain = ENV['CC_ROOT_DOMAIN']
-deploymentname = "cf"
+deployment_name = "<%= @vars['cf_deploy']['deployment_name'] %>"
 %&gt;
 EOF
 
