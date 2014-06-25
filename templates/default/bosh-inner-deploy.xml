@@ -74,6 +74,7 @@ bundle update
 
 export DEPLOYMENT_NAME="<%= @vars['inner_bosh']['deployment_name'] %>"
 export DEPLOYMENT_DESC="<%= @vars['inner_bosh']['deployment_description'] %>"
+export BOSH_ROOT_DOMAIN=<%= @vars['inner_bosh']['root_domain'] %>
 export MANIFEST_TEMPLATE=<%= @vars['manifest_templates']['inner_bosh'] %>
 export MANIFEST_FINAL=inner_bosh/<%= @vars['iaas'] %>/bosh.yml
 export OUTER_BOSH_HOST=<%= @vars['outer_bosh']['director_ip'] %>

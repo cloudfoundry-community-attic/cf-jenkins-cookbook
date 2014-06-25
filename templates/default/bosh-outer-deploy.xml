@@ -39,6 +39,7 @@
 
 export DEPLOYMENT_NAME="<%= @vars['outer_bosh']['deployment_name'] %>"
 export DEPLOYMENT_DESC="<%= @vars['outer_bosh']['deployment_description'] %>"
+export BOSH_ROOT_DOMAIN=<%= @vars['outer_bosh']['root_domain'] %>
 export OUTER_BOSH_IP=<%= @vars['outer_bosh']['director_ip'] %>
 export MANIFEST_TEMPLATE=<%= @vars['manifest_templates']['outer_bosh'] %>
 export MANIFEST_FINAL=outer_bosh/<%= @vars['iaas'] %>/micro_bosh.yml
