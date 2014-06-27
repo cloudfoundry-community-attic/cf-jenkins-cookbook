@@ -83,6 +83,8 @@ export GOPATH=~/go
 export PATH=~/go/bin:/usr/local/go/bin:$PATH
 go get -v github.com/cloudfoundry-incubator/spiff
 
+cd $WORKSPACE
+
 <%
   case @vars['iaas']
   when 'openstack'
@@ -94,28 +96,29 @@ go get -v github.com/cloudfoundry-incubator/spiff
     <%
   when 'vsphere'
     %>
+    export VSPHERE_NETWORKS='<%= JSON.generate(@vars['iaas_config']['networks']['cf_services_contrib']) %>'
+    RUBY_SCRIPT="require 'json'; data = YAML::load(STDIN.read); vnetworks = JSON.parse(ENV['VSPHERE_NETWORKS']); data['networks'] = vnetworks; File.open('<%= @vars['spiff_templates']['cf_services_contrib'] %>', 'w') { |file| file.write(data.to_yaml) }"
+    cat <%= @vars['spiff_templates']['cf_services_contrib'] %> | ruby -ryaml -e "$RUBY_SCRIPT"
     <%
-  end 
+  end
 %>
 
-cd $WORKSPACE
+./cloudfoundry-services/generate_manifest.sh <%= @vars['iaas'] %> <%= @vars['spiff_templates']['cf_services_contrib'] %> >> $WORKSPACE/$MANIFEST_TEMPLATE
 
-cat &lt;&lt; EOF &gt; $WORKSPACE/$MANIFEST_TEMPLATE
-&lt;%
+export SUB_VARS=&quot;&lt;%
 director_uuid = ENV['INNER_BOSH_UUID']
 protocol = ENV['CF_PROTOCOL']
 cf_release = ENV['CF_RELEASE_VERSION']
 ip_address = ENV['CC_IP']
-common_password = "c1oudc0wc1oudc0w"
+common_password = 'c1oudc0wc1oudc0w'
 root_domain = ENV['CC_ROOT_DOMAIN']
-deployment_name = "<%= @vars['cf_services_contrib']['deployment_name'] %>"
-bosh_root_domain = "<%= @vars['inner_bosh']['root_domain'] %>"
+deployment_name = '<%= @vars['cf_services_contrib']['deployment_name'] %>'
+bosh_root_domain = '<%= @vars['inner_bosh']['root_domain'] %>'
 stemcell_name = ENV['STEMCELL_NAME']
 stemcell_version = ENV['STEMCELL_VERSION']
-%&gt;
-EOF
+%&gt;&quot;
 
-./cloudfoundry/generate_manifest.sh <%= @vars['iaas'] %> <%= @vars['spiff_templates']['cf_release'] %> >> $WORKSPACE/$MANIFEST_TEMPLATE 
+echo -e &quot;${SUB_VARS}\n$(cat $WORKSPACE/$MANIFEST_TEMPLATE)&quot; &gt; $WORKSPACE/$MANIFEST_TEMPLATE
 
 rake manifest:prepare[&quot;${MANIFEST_TEMPLATE}&quot;,&quot;${MANIFEST_FINAL}&quot;]
 
@@ -135,6 +138,14 @@ bosh -n deploy</command>
 </hudson.tasks.BuildTrigger>
 </publishers>
 <buildWrappers>
+    <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.21">
+      <deleteDirs>false</deleteDirs>
+      <cleanupParameter></cleanupParameter>
+      <externalDelete></externalDelete>
+    </hudson.plugins.ws__cleanup.PreBuildCleanup>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.4.0">
+      <colorMapName>xterm</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
 <ruby-proxy-object>
 <ruby-object ruby-class="Jenkins::Tasks::BuildWrapperProxy" pluginid="rbenv">
 <pluginid pluginid="rbenv" ruby-class="String">rbenv</pluginid>
