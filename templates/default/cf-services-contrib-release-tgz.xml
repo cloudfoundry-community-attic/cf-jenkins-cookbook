@@ -36,7 +36,9 @@
   <builders>
     <hudson.tasks.Shell>
         <command>
-<% if @vars['mode'] == 'dev' %>
+<% if @vars['jobs']['cf-services-contrib-release-tgz'] == 'dev' %>
+git branch --set-upstream <%= @vars['git_repos']['cf_release']['branch'] %> origin/<%= @vars['git_repos']['cf_release']['branch'] %>
+
 export DEV_RELEASE_YML=$WORKSPACE/config/dev.yml
 
 ./update
@@ -46,7 +48,7 @@ bosh -n reset release
 
 cat &lt;&lt; EOF &gt; $DEV_RELEASE_YML
 ---
-dev_name: cf_services_contrib
+dev_name: <%= @vars['cf-services-contrib-release']['dev_name'] %>
 EOF
 
 bosh -n create release --with-tarball --force
