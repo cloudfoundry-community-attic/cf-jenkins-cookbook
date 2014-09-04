@@ -118,10 +118,6 @@ EOF
 bosh -n target <%= @vars['inner_bosh']['director_ip'] %>
 bosh -n login <%= @vars['inner_bosh']['user'] %> <%= @vars['inner_bosh']['pass'] %>
 
-export CC_IP=<%= @vars['cloud_controller']['ip'] %>
-export CC_ROOT_DOMAIN=<%= @vars['cloud_controller']['root_domain'] %>
-export BOSH_UUID=$(bosh status | grep UUID | awk '{print $2}')
-
 rake manifest:prepare[&quot;${MANIFEST_TEMPLATE}&quot;,&quot;${MANIFEST_FINAL}&quot;]
 
 bosh -n deployment $WORKSPACE/${MANIFEST_FINAL}
