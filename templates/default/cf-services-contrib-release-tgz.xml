@@ -54,7 +54,7 @@ EOF
 bosh -n create release --with-tarball --force
 
 RELEASE_PATH=${WORKSPACE}/dev_releases
-RELEASE_YML=`ls -t $RELEASE_PATH/*.yml | tee | head -1`
+RELEASE_YML=`ls -t $RELEASE_PATH/<%= @vars['cf-services-contrib-release']['dev_name'] %>/*.yml | tee | head -1`
 
 <% else %>
 

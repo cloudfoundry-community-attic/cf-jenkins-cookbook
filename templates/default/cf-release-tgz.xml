@@ -57,14 +57,14 @@ EOF
 bundle exec bosh -n create release --with-tarball --force
 
 RELEASE_PATH=${WORKSPACE}/dev_releases
-DEV_RELEASE_YML=`ls -t $RELEASE_PATH/*.yml | tee | head -1`
+DEV_RELEASE_YML=`ls -t $RELEASE_PATH/<%= @vars['cf-release']['dev_name'] %>/*.yml | tee | head -1`
 
 RUBY_SCRIPT=&quot;data = YAML::load(STDIN.read); puts \&quot;#{data[&apos;name&apos;]} #{data[&apos;version&apos;]}\&quot;&quot; 
 RELEASE_PROPS=`cat $DEV_RELEASE_YML | ruby -ryaml -e &quot;$RUBY_SCRIPT&quot;`
 read RELEASE_NAME RELEASE_VERSION &lt;&lt;&lt;$(echo $RELEASE_PROPS) 
 echo &quot;${RELEASE_NAME} ${RELEASE_VERSION}&quot; &gt; release_version.txt
 
-mv ${RELEASE_PATH}/${RELEASE_NAME}-${RELEASE_VERSION}.tgz $WORKSPACE/cf-release.tgz</command>
+mv ${RELEASE_PATH}/<%= @vars['cf-release']['dev_name'] %>/${RELEASE_NAME}-${RELEASE_VERSION}.tgz $WORKSPACE/cf-release.tgz</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
