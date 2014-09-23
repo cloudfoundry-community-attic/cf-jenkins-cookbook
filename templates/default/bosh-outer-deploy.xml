@@ -40,6 +40,7 @@
 export DEPLOYMENT_NAME="<%= @vars['outer_bosh']['deployment_name'] %>"
 export DEPLOYMENT_DESC="<%= @vars['outer_bosh']['deployment_description'] %>"
 export BOSH_ROOT_DOMAIN=<%= @vars['outer_bosh']['root_domain'] %>
+export BOSH_DNS_RECURSOR=<%= @vars['outer_bosh']['dns_recursor'] %>
 export OUTER_BOSH_IP=<%= @vars['outer_bosh']['director_ip'] %>
 export MANIFEST_TEMPLATE=<%= @vars['manifest_templates']['outer_bosh'] %>
 export MANIFEST_FINAL=outer_bosh/<%= @vars['iaas'] %>/micro_bosh.yml
@@ -61,7 +62,8 @@ export MANIFEST_FINAL=outer_bosh/<%= @vars['iaas'] %>/micro_bosh.yml
   when 'vsphere'
     %>
     export VSPHERE_CONNECTION='<%= JSON.generate(@vars['iaas_config']['connection']['outer_bosh']['vcenters']) %>'
-    RUBY_SCRIPT="require 'json'; data = YAML::load(STDIN.read); vconn = JSON.parse(ENV['VSPHERE_CONNECTION']); data['cloud']['properties']['vcenters'] = vconn; File.open(ENV['MANIFEST_TEMPLATE'], 'w') { |file| file.write(data.to_yaml) }"
+    export VSPHERE_NETWORKS='<%= JSON.generate(@vars['iaas_config']['networks']['outer_bosh']) %>'
+    RUBY_SCRIPT="require 'json'; data = YAML::load(STDIN.read); vconn = JSON.parse(ENV['VSPHERE_CONNECTION']); vnet = JSON.parse(ENV['VSPHERE_NETWORKS']); data['cloud']['properties']['vcenters'] = vconn; data['network'] = vnet; File.open(ENV['MANIFEST_TEMPLATE'], 'w') { |file| file.write(data.to_yaml) }"
     cat ${MANIFEST_TEMPLATE} | ruby -ryaml -e "$RUBY_SCRIPT"
     <%
   end
