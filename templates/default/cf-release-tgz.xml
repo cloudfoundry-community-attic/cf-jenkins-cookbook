@@ -84,7 +84,7 @@ mv ${RELEASE_PATH}/<%= @vars['cf-release']['dev_name'] %>/${RELEASE_NAME}-${RELE
           <rbenv__revision pluginid="rbenv" ruby-class="String">master</rbenv__revision>
           <rbenv__repository pluginid="rbenv" ruby-class="String">https://github.com/sstephenson/rbenv.git</rbenv__repository>
           <ruby__build__revision pluginid="rbenv" ruby-class="String">master</ruby__build__revision>
-          <gem__list pluginid="rbenv" ruby-class="String">bundler,rake</gem__list>
+          <gem__list pluginid="rbenv" ruby-class="String">bundler,rake,bosh_cli,bosh_cli_plugin_micro,thor,rinku</gem__list>
           <version pluginid="rbenv" ruby-class="String">1.9.3-p484</version>
           <ignore__local__version ruby-class="FalseClass" pluginid="rbenv"/>
         </object>
