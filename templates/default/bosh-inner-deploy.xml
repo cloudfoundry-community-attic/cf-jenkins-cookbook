@@ -81,6 +81,7 @@ export OUTER_BOSH_HOST=<%= @vars['outer_bosh']['director_ip'] %>
 export OUTER_BOSH_USER=<%= @vars['outer_bosh']['user'] %>
 export OUTER_BOSH_PASS=<%= @vars['outer_bosh']['pass'] %>
 export OUTER_BOSH_UUID=$(bosh status | grep UUID | awk '{print $2}')
+export OUTER_ROOT_DOMAIN=<%= @vars['outer_bosh']['root_domain'] %>
 export BOSH_HOST=<%= @vars['inner_bosh']['director_ip'] %>
 export POWERDNS_HOST=<%= @vars['inner_bosh']['powerdns_ip'] %>
 
