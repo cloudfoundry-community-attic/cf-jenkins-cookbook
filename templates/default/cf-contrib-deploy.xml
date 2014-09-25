@@ -96,9 +96,6 @@ cd $WORKSPACE
     <%
   when 'vsphere'
     %>
-    export VSPHERE_NETWORKS='<%= JSON.generate(@vars['iaas_config']['networks']['cf_services_contrib']) %>'
-    RUBY_SCRIPT="require 'json'; data = YAML::load(STDIN.read); vnetworks = JSON.parse(ENV['VSPHERE_NETWORKS']); data['networks'] = vnetworks; File.open('<%= @vars['spiff_templates']['cf_services_contrib'] %>', 'w') { |file| file.write(data.to_yaml) }"
-    cat <%= @vars['spiff_templates']['cf_services_contrib'] %> | ruby -ryaml -e "$RUBY_SCRIPT"
     <%
   end
 %>
