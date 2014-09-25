@@ -37,7 +37,7 @@
     <hudson.tasks.Shell>
         <command>
 <% if @vars['jobs']['cf-services-contrib-release-tgz'] == 'dev' %>
-git branch --set-upstream <%= @vars['git_repos']['cf_release']['branch'] %> origin/<%= @vars['git_repos']['cf_release']['branch'] %>
+git branch --set-upstream <%= @vars['git_repos']['cf_services_contrib_release']['branch'] %> origin/<%= @vars['git_repos']['cf_services_contrib_release']['branch'] %>
 
 export DEV_RELEASE_YML=$WORKSPACE/config/dev.yml
 
