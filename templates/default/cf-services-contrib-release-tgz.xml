@@ -25,7 +25,11 @@
     </branches>
     <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
     <submoduleCfg class="list"/>
-    <extensions/>
+    <extensions>
+        <hudson.plugins.git.extensions.impl.LocalBranch>
+            <localBranch><%= @vars['git_repos']['cf_services_contrib_release']['branch'] %></localBranch>
+        </hudson.plugins.git.extensions.impl.LocalBranch>
+    </extensions>
   </scm>
   <canRoam>true</canRoam>
   <disabled>false</disabled>
