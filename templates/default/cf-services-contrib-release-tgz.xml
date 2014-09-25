@@ -37,7 +37,7 @@
     <hudson.tasks.Shell>
         <command>
 <% if @vars['jobs']['cf-services-contrib-release-tgz'] == 'dev' %>
-git branch --set-upstream <%= @vars['git_repos']['cf_services_contrib_release']['branch'] %> origin/<%= @vars['git_repos']['cf_services_contrib_release']['branch'] %>
+git branch --set-upstream-to=origin/<%= @vars['git_repos']['cf_services_contrib_release']['branch'] %> <%= @vars['git_repos']['cf_services_contrib_release']['branch'] %>
 
 export DEV_RELEASE_YML=$WORKSPACE/config/dev.yml
 
@@ -70,8 +70,6 @@ fi
 
 <% end %>
 
-bundle update
-
 <% if @vars['http_proxy'] %>http_proxy=<%= @vars['http_proxy'] %><% end %> bosh -n create release $WORKSPACE/$RELEASE_YML --with-tarball
 
 RUBY_SCRIPT=&quot;data = YAML::load(STDIN.read); puts \&quot;#{data[&apos;name&apos;]} #{data[&apos;version&apos;]}\&quot;&quot; 
@@ -80,7 +78,7 @@ read RELEASE_NAME RELEASE_VERSION &lt;&lt;&lt;$(echo $RELEASE_PROPS)
 
 echo &quot;${RELEASE_NAME} ${RELEASE_VERSION}&quot; &gt; contrib_services_release_version.txt
 
-mv ${RELEASE_PATH}/${RELEASE_NAME}-${RELEASE_VERSION}.tgz $WORKSPACE/cf-services-contrib-release.tgz</command>
+mv ${RELEASE_PATH}/<%= @vars['cf-services-contrib-release']['dev_name'] %>/${RELEASE_NAME}-${RELEASE_VERSION}.tgz $WORKSPACE/cf-services-contrib-release.tgz</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
