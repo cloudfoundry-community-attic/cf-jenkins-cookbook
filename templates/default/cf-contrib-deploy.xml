@@ -119,7 +119,9 @@ stemcell_version = ENV['STEMCELL_VERSION']
 
 echo -e &quot;${SUB_VARS}\n$(cat $WORKSPACE/$MANIFEST_TEMPLATE)&quot; &gt; $WORKSPACE/$MANIFEST_TEMPLATE
 
-rake manifest:prepare[&quot;${MANIFEST_TEMPLATE}&quot;,&quot;${MANIFEST_FINAL}&quot;]
+rake manifest:prepare["${MANIFEST_TEMPLATE}","${MANIFEST_TEMPLATE}.stage2"]
+
+./multisite.rb ${MANIFEST_TEMPLATE}.stage2 > $WORKSPACE/${MANIFEST_FINAL}
 
 bosh -n deployment $WORKSPACE/${MANIFEST_FINAL}
 bosh -n deploy</command>

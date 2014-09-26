@@ -120,7 +120,7 @@ bosh -n login <%= @vars['inner_bosh']['user'] %> <%= @vars['inner_bosh']['pass']
 
 rake manifest:prepare[&quot;${MANIFEST_TEMPLATE}&quot;,&quot;${MANIFEST_TEMPLATE}.stage2&quot;]
 
-./cloudfoundry/multisite.rb ${MANIFEST_TEMPLATE}.stage2 > $WORKSPACE/${MANIFEST_FINAL}
+./multisite.rb ${MANIFEST_TEMPLATE}.stage2 > $WORKSPACE/${MANIFEST_FINAL}
 
 bosh -n deployment $WORKSPACE/${MANIFEST_FINAL}
 bosh -n deploy</command>
