@@ -78,6 +78,7 @@ export INNER_BOSH_UUID=$(bosh status | grep UUID | awk '{print $2}')
 export CC_IP=<%= @vars['cloud_controller']['ip'] %>
 export CC_ROOT_DOMAIN=<%= @vars['cloud_controller']['root_domain'] %>
 export CF_PROTOCOL=<%= @vars['cloud_controller']['protocol'] %>
+export BOSH_ROOT_DOMAIN=<%= @vars['inner_bosh']['root_domain'] %>
 
 export GOPATH=~/go
 export PATH=~/go/bin:/usr/local/go/bin:$PATH
@@ -110,6 +111,7 @@ ip_address = ENV['CC_IP']
 common_password = "c1oudc0wc1oudc0w"
 root_domain = ENV['CC_ROOT_DOMAIN']
 deployment_name = "<%= @vars['cf_deploy']['deployment_name'] %>"
+bosh_root_domain = ENV['BOSH_ROOT_DOMAIN']
 %&gt;
 EOF
 
