@@ -47,8 +47,7 @@ export DEV_RELEASE_YML=$WORKSPACE/config/dev.yml
 
 ./update
 
-gem install bosh_cli
-bosh -n reset release
+gem install bosh_cli bosh_cli_plugin_micro
 
 cat &lt;&lt; EOF &gt; $DEV_RELEASE_YML
 ---
@@ -73,8 +72,6 @@ else
 fi
 
 <% end %>
-
-<% if @vars['http_proxy'] %>http_proxy=<%= @vars['http_proxy'] %><% end %> bosh -n create release $WORKSPACE/$RELEASE_YML --with-tarball
 
 RUBY_SCRIPT=&quot;data = YAML::load(STDIN.read); puts \&quot;#{data[&apos;name&apos;]} #{data[&apos;version&apos;]}\&quot;&quot; 
 RELEASE_PROPS=`cat $RELEASE_YML | ruby -ryaml -e &quot;$RUBY_SCRIPT&quot;`
