@@ -21,7 +21,7 @@
     <hudson.tasks.Shell>
       <command>
 if ! gem spec bosh_cli > /dev/null 2&gt;&amp;1 ; then
-  gem install bosh_cli 
+  gem install bosh_cli bosh_cli_plugin_micro 
 fi
 rbenv rehash
 
@@ -31,7 +31,7 @@ export OUTER_BOSH_PASS=<%= @vars['outer_bosh']['pass'] %>
 
 bosh -n target $OUTER_BOSH_HOST 
 bosh -n login $OUTER_BOSH_USER $OUTER_BOSH_PASS 
-bosh -n upload release bosh-release.tgz --rebase
+bosh -n upload release bosh-release.tgz
 </command>
     </hudson.tasks.Shell>
   </builders>
