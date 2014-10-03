@@ -37,12 +37,9 @@
     <hudson.tasks.Shell>
       <command>bundle install --local
 
-cd $WORKSPACE/release
-bundle exec bosh -n reset release
-
 cd $WORKSPACE
 
-export CANDIDATE_BUILD_NUMBER=$((${BUILD_NUMBER} + 3)) # need to increment by 3 to appease bundler later
+export CANDIDATE_BUILD_NUMBER=`grep -o "[0-9]\{4\}" bosh-director/lib/bosh/director/version.rb`
 
 <% if @vars['http_proxy'] %>http_proxy=<%= @vars['http_proxy'] %><% end %> bundle exec rake release:create_dev_release
 
