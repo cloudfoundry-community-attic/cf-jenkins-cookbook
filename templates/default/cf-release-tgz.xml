@@ -47,7 +47,6 @@ export DEV_RELEASE_YML=$WORKSPACE/config/dev.yml
 ./update
 
 bundle install --local
-bundle exec bosh -n reset release
 
 cat &lt;&lt; EOF &gt; $DEV_RELEASE_YML
 ---
