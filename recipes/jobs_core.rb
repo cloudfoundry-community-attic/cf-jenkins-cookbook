@@ -22,37 +22,40 @@ end
 end
 
 # Stemcell tgz
-jenkins_cf_job 'stemcell-tgz' do
-  config node['jenkins_cf']
-  template job_modes['stemcell-tgz'] == 'dev' ? 'stemcell-builder.xml' : 'stemcell-watcher.xml'
-end
-
 # Install inner/outer bosh stemcell upload jobs
 downstream_jobs = {
   outer: 'bosh-release-deploy',
   inner: 'cf-release-deploy',
 }
 
-%w{ outer inner }.each do |bosh_layer|
-  bosh_config = node['jenkins_cf']["#{bosh_layer}_bosh"]
+stemcells = node['jenkins_cf']['stemcells']
+stemcells.each do |sc_name, sc_config|
+  stemcell_tgz_job = "stemcell-tgz-#{sc_name}"
 
-  stemcell_job_config = {
-    director_ip: bosh_config['director_ip'],
-    bosh_username: bosh_config['user'],
-    bosh_password: bosh_config['pass'],
-    downstream_jobs: downstream_jobs[bosh_layer.to_sym],
+  stemcell_tgz_config = {
+    stemcell_base_url: sc_config['stemcell_base_url'],
+    stemcell: sc_config['stemcell']
   }
 
-  jenkins_cf_job "stemcell-#{bosh_layer}-upload" do
-    config stemcell_job_config
-    template 'stemcell-uploader.xml'
+  jenkins_cf_job stemcell_tgz_job do
+    config stemcell_tgz_config
+    template sc_config['mode'] == 'dev' ? 'stemcell-builder.xml' : 'stemcell-watcher.xml'
   end
-end
 
-# Install other core jobs
-%w{ bosh-bats
-    vcap-yeti }.each do |job_name|
-  jenkins_cf_job job_name do
-    config node['jenkins_cf']
+  %w{ outer inner }.each do |bosh_layer|
+    bosh_config = node['jenkins_cf']["#{bosh_layer}_bosh"]
+
+    stemcell_upload_config = {
+      director_ip: bosh_config['director_ip'],
+      bosh_username: bosh_config['user'],
+      bosh_password: bosh_config['pass'],
+      downstream_jobs: downstream_jobs[bosh_layer.to_sym],
+      stemcell_artifact_source: stemcell_tgz_job
+    }
+
+    jenkins_cf_job "stemcell-#{bosh_layer}-upload-#{sc_name}" do
+      config stemcell_upload_config
+      template 'stemcell-uploader.xml'
+    end
   end
 end

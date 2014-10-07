@@ -50,7 +50,7 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.plugins.copyartifact.CopyArtifact plugin="copyartifact@1.28">
-      <project>stemcell-tgz</project>
+      <project>stemcell-inner-upload-<%= @vars['cf-release']['stemcell'] %></project>
       <filter>stemcell_version.txt</filter>
       <target>config</target>
       <selector class="hudson.plugins.copyartifact.StatusBuildSelector"/>

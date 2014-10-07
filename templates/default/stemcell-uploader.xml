@@ -13,8 +13,8 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.plugins.copyartifact.CopyArtifact plugin="copyartifact@1.28">
-      <project>stemcell-tgz</project>
-      <filter>stemcell.tgz</filter>
+      <project><%= @vars[:stemcell_artifact_source] %></project>
+      <filter>stemcell.tgz, stemcell_version.txt</filter>
       <target></target>
       <selector class="hudson.plugins.copyartifact.StatusBuildSelector"/>
     </hudson.plugins.copyartifact.CopyArtifact>
@@ -28,6 +28,13 @@ bosh -n upload stemcell stemcell.tgz</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
+    <hudson.tasks.ArtifactArchiver>
+      <artifacts>stemcell_version.txt</artifacts>
+      <allowEmptyArchive>false</allowEmptyArchive>
+      <onlyIfSuccessful>false</onlyIfSuccessful>
+      <fingerprint>false</fingerprint>
+      <defaultExcludes>true</defaultExcludes>
+    </hudson.tasks.ArtifactArchiver>
     <hudson.tasks.BuildTrigger>
       <childProjects><%= @vars[:downstream_jobs] %></childProjects>
       <threshold>

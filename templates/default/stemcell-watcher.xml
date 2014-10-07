@@ -23,8 +23,8 @@
       <enableConcurrentBuild>false</enableConcurrentBuild>
       <script>PATH=~/.rbenv/bin:~/.rbenv/shims:$PATH
 PREV_STEMCELL_DATE=`curl $JOB_URL/lastSuccessfulBuild/artifact/stemcell_date_added.txt`
-STEMCELL_BASE_URL=<%= @vars['stemcell_base_url'] %>
-STEMCELL_SEARCH=<%= @vars['stemcell'] %>
+STEMCELL_BASE_URL=<%= @vars[:stemcell_base_url] %>
+STEMCELL_SEARCH=<%= @vars[:stemcell] %>
 STEMCELL_DATA=`curl &quot;${STEMCELL_BASE_URL}/?prefix=${STEMCELL_SEARCH}&quot; 2&gt;/dev/null`
 CURR_STEMCELL_DATE=`echo $STEMCELL_DATA | sed &apos;s/.*&lt;LastModified&gt;\([^&lt;]*\)&lt;\/LastModified&gt;.*/\1/&apos; | tr -d &apos; &apos;`
 
@@ -37,15 +37,15 @@ ruby -e &quot;$DATE_DIFF_RB&quot; ${PREV_STEMCELL_DATE} ${CURR_STEMCELL_DATE}</s
   <builders>
     <hudson.tasks.Shell>
       <command>
-STEMCELL_BASE_URL=<%= @vars['stemcell_base_url'] %>
-STEMCELL_SEARCH=<%= @vars['stemcell'] %>
+STEMCELL_BASE_URL=<%= @vars[:stemcell_base_url] %>
+STEMCELL_SEARCH=<%= @vars[:stemcell] %>
 STEMCELL_DATA=`curl &quot;${STEMCELL_BASE_URL}/?prefix=${STEMCELL_SEARCH}&quot; 2&gt;/dev/null`
 STEMCELL_DATE_ADDED=`echo $STEMCELL_DATA | sed &apos;s/.*&lt;LastModified&gt;\([^&lt;]*\)&lt;\/LastModified&gt;.*/\1/&apos; | tr -d &apos; &apos;`
 STEMCELL_URL=${STEMCELL_BASE_URL}/${STEMCELL_SEARCH}
 STEMCELL_TMP_DIR=${WORKSPACE}/stemcell
 
 mkdir -p $STEMCELL_TMP_DIR
-<% if @vars['http_proxy'] %>http_proxy=<%= @vars['http_proxy'] %><% end %> wget $STEMCELL_URL -O stemcell.tgz
+<% if @vars[:http_proxy] %>http_proxy=<%= @vars[:http_proxy] %><% end %> wget $STEMCELL_URL -O stemcell.tgz
 tar -zxvf stemcell.tgz -C $STEMCELL_TMP_DIR
 
 RUBY_SCRIPT=&quot;data = YAML::load(STDIN.read); puts \&quot;#{data[&apos;name&apos;]} #{data[&apos;version&apos;]}\&quot;&quot;
