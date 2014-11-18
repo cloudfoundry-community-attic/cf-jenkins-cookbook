@@ -1,3 +1,8 @@
+<%
+  release_name = @vars['release']['name']
+  release_config = @vars['release']['config']
+  git_repo = @vars['git_repos'][release_config['git_repo']]
+%>
 <?xml version='1.0' encoding='UTF-8'?>
 <project>
   <actions/>
@@ -14,13 +19,13 @@
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
-        <url><%= @vars['git_repos']['bosh']['address'] %></url>
-        <credentialsId><%= @vars['git_repos']['bosh']['credential'] %></credentialsId>
+        <url><%= git_repo['address'] %></url>
+        <credentialsId><%= git_repo['credential'] %></credentialsId>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
     <branches>
       <hudson.plugins.git.BranchSpec>
-        <name><%= @vars['git_repos']['bosh']['branch'] %></name>
+        <name><%= git_repo['branch'] %></name>
       </hudson.plugins.git.BranchSpec>
     </branches>
     <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
@@ -57,12 +62,12 @@ read RELEASE_NAME RELEASE_VERSION &lt;&lt;&lt;$(echo $RELEASE_PROPS)
 cd $WORKSPACE
 echo "${RELEASE_NAME} ${RELEASE_VERSION}" > release_version.txt
 
-mv ${RELEASE_PATH}/${RELEASE_NAME}-${RELEASE_VERSION}.tgz $WORKSPACE/bosh-release.tgz</command>
+mv ${RELEASE_PATH}/${RELEASE_NAME}-${RELEASE_VERSION}.tgz $WORKSPACE/release.tgz</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
     <hudson.tasks.ArtifactArchiver>
-      <artifacts>bosh-release.tgz, release_version.txt</artifacts>
+      <artifacts>release.tgz, release_version.txt</artifacts>
       <latestOnly>false</latestOnly>
       <allowEmptyArchive>false</allowEmptyArchive>
     </hudson.tasks.ArtifactArchiver>

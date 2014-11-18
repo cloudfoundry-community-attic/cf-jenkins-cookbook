@@ -1,3 +1,13 @@
+<%
+  cfg = @vars['_']
+  deployment_name = cfg['deployment']['name']
+  deployment = cfg['deployment']['config']
+  release_name = cfg['release']['name']
+  release = cfg['release']['config']
+  bosh_name = cfg['bosh']['name']
+  bosh = cfg['bosh']['config']
+  job_name = cfg['job_name']
+%>
 <?xml version='1.0' encoding='UTF-8'?>
 <project>
   <actions/>
@@ -29,7 +39,7 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.plugins.copyartifact.CopyArtifact plugin="copyartifact@1.28">
-      <project>stemcell-tgz-<%= @vars['outer_bosh']['stemcell'] %></project>
+      <project>stemcell-tgz-<%= deployment['stemcell'] %></project>
       <filter>stemcell.tgz</filter>
       <target></target>
       <selector class="hudson.plugins.copyartifact.StatusBuildSelector"/>
@@ -37,12 +47,12 @@
     <hudson.tasks.Shell>
       <command>bundle install
 
-export DEPLOYMENT_NAME="<%= @vars['outer_bosh']['deployment_name'] %>"
-export DEPLOYMENT_DESC="<%= @vars['outer_bosh']['deployment_description'] %>"
-export BOSH_ROOT_DOMAIN=<%= @vars['outer_bosh']['root_domain'] %>
-export BOSH_DNS_RECURSOR=<%= @vars['outer_bosh']['dns_recursor'] %>
-export OUTER_BOSH_IP=<%= @vars['outer_bosh']['director_ip'] %>
-export MANIFEST_TEMPLATE=<%= @vars['manifest_templates']['outer_bosh'] %>
+export DEPLOYMENT_NAME="<%= deployment['name'] %>"
+export DEPLOYMENT_DESC="<%= deployment['description'] %>"
+export BOSH_ROOT_DOMAIN=<%= deployment['root_domain'] %>
+export BOSH_DNS_RECURSOR=<%= deployment['dns_recursor'] %>
+export OUTER_BOSH_IP=<%= deployment['director_ip'] %>
+export MANIFEST_TEMPLATE=<%= deployment['manifest_template'] %>
 export MANIFEST_FINAL=outer_bosh/<%= @vars['iaas'] %>/micro_bosh.yml
 
 <%
@@ -61,8 +71,8 @@ export MANIFEST_FINAL=outer_bosh/<%= @vars['iaas'] %>/micro_bosh.yml
     <%
   when 'vsphere'
     %>
-    export VSPHERE_CONNECTION='<%= JSON.generate(@vars['iaas_config']['connection']['outer_bosh']['vcenters']) %>'
-    export VSPHERE_NETWORKS='<%= JSON.generate(@vars['iaas_config']['networks']['outer_bosh']) %>'
+    export VSPHERE_CONNECTION='<%= JSON.generate(deployment['vcenters']) %>'
+    export VSPHERE_NETWORKS='<%= JSON.generate(deployment['network']) %>'
     RUBY_SCRIPT="require 'json'; data = YAML::load(STDIN.read); vconn = JSON.parse(ENV['VSPHERE_CONNECTION']); vnet = JSON.parse(ENV['VSPHERE_NETWORKS']); data['cloud']['properties']['vcenters'] = vconn; data['network'] = vnet; File.open(ENV['MANIFEST_TEMPLATE'], 'w') { |file| file.write(data.to_yaml) }"
     cat ${MANIFEST_TEMPLATE} | ruby -ryaml -e "$RUBY_SCRIPT"
     <%

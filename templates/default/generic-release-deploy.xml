@@ -7,12 +7,12 @@
   bosh_name = cfg['bosh']['name']
   bosh = cfg['bosh']['config']
   job_name = cfg['job_name']
-  outer_bosh = @vars['deployments']['config']['bosh-outer']
+  job_desc = cfg['job_desc']
 %>
 <?xml version='1.0' encoding='UTF-8'?>
 <project>
   <actions/>
-  <description></description>
+  <description><%= job_desc %></description>
   <keepDependencies>false</keepDependencies>
   <properties/>
   <scm class="hudson.plugins.git.GitSCM" plugin="git@1.5.0">
@@ -67,7 +67,7 @@
       <selector class="hudson.plugins.copyartifact.StatusBuildSelector"/>
     </hudson.plugins.copyartifact.CopyArtifact>
     <hudson.plugins.copyartifact.CopyArtifact plugin="copyartifact@1.28">
-      <project>cf-services-contrib-release-upload</project>
+      <project><%= release_name %>-release-upload</project>
       <filter>release_version.txt</filter>
       <target>config</target>
       <selector class="hudson.plugins.copyartifact.StatusBuildSelector"/>
@@ -78,23 +78,22 @@ bosh -n target <%= bosh['director_ip'] %>
 bosh -n login <%= bosh['user'] %> <%= bosh['password'] %>
 
 read STEMCELL_NAME STEMCELL_VERSION &lt;&lt;&lt;$(cat $WORKSPACE/config/stemcell_version.txt)
-read CF_RELEASE_NAME CF_RELEASE_VERSION &lt;&lt;&lt;$(cat $WORKSPACE/config/contrib_services_release_version.txt)
+read RELEASE_NAME RELEASE_VERSION &lt;&lt;&lt;$(cat $WORKSPACE/config/release_version.txt)
 export STEMCELL_NAME
 export STEMCELL_VERSION
-export CF_RELEASE_NAME
-export CF_RELEASE_VERSION
-export MANIFEST_TEMPLATE=cloudfoundry-services/cf-ci.yml.erb
-export MANIFEST_FINAL=cloudfoundry-services/cf.yml
-export INNER_BOSH_UUID=$(bosh status | grep UUID | awk '{print $2}')
+export RELEASE_NAME
+export RELEASE_VERSION
+export MANIFEST_TEMPLATE=<%= deployment_name %>/ci.yml.erb
+export MANIFEST_FINAL=<%= deployment_name %>/manifest.yml
+export BOSH_UUID=$(bosh status | grep UUID | awk '{print $2}')
 export CC_IP=<%= @vars['cloud_controller']['ip'] %>
 export CC_ROOT_DOMAIN=<%= @vars['cloud_controller']['root_domain'] %>
 export CF_PROTOCOL=<%= @vars['cloud_controller']['protocol'] %>
+export BOSH_ROOT_DOMAIN=<%= bosh['root_domain'] %>
 
 export GOPATH=~/go
 export PATH=~/go/bin:/usr/local/go/bin:$PATH
 go get -v github.com/cloudfoundry-incubator/spiff
-
-cd $WORKSPACE
 
 <%
   case @vars['iaas']
@@ -108,31 +107,34 @@ cd $WORKSPACE
   when 'vsphere'
     %>
     <%
-  end
+  end 
 %>
 
-./cloudfoundry-services/generate_manifest.sh <%= @vars['iaas'] %> <%= deployment['spiff_templates'] %> >> $WORKSPACE/$MANIFEST_TEMPLATE
+cd $WORKSPACE
 
-export SUB_VARS=&quot;&lt;%
-director_uuid = ENV['INNER_BOSH_UUID']
+cat &lt;&lt; EOF &gt; $WORKSPACE/$MANIFEST_TEMPLATE
+&lt;%
+director_uuid = ENV['BOSH_UUID']
 protocol = ENV['CF_PROTOCOL']
-contrib_release_name = ENV['CF_RELEASE_NAME']
-contrib_release_version = ENV['CF_RELEASE_VERSION']
+release_version = ENV['RELEASE_VERSION']
 ip_address = ENV['CC_IP']
-common_password = 'c1oudc0wc1oudc0w'
+common_password = "c1oudc0wc1oudc0w"
 root_domain = ENV['CC_ROOT_DOMAIN']
-deployment_name = '<%= deployment['name'] %>'
-cf_deployment_name = '<%= @vars['deployments']['config']['cf']['name'] %>'
-bosh_root_domain = '<%= bosh['root_domain'] %>'
-stemcell_name = ENV['STEMCELL_NAME']
-stemcell_version = ENV['STEMCELL_VERSION']
-%&gt;&quot;
+deployment_name = "<%= deployment['name'] %>"
+bosh_root_domain = ENV['BOSH_ROOT_DOMAIN']
+%&gt;
+EOF
 
-echo -e &quot;${SUB_VARS}\n$(cat $WORKSPACE/$MANIFEST_TEMPLATE)&quot; &gt; $WORKSPACE/$MANIFEST_TEMPLATE
+./cloudfoundry/generate_manifest.sh <%= @vars['iaas'] %> <%= deployment['spiff_templates'] %> >> $WORKSPACE/$MANIFEST_TEMPLATE 
 
-rake manifest:prepare["${MANIFEST_TEMPLATE}","${MANIFEST_TEMPLATE}.stage2"]
-
-./multisite.rb ${MANIFEST_TEMPLATE}.stage2 > $WORKSPACE/${MANIFEST_FINAL}
+<% if cfg['multisite'] %>
+  # MULTISITE ENABLED
+  rake manifest:prepare[&quot;${MANIFEST_TEMPLATE}&quot;,&quot;${MANIFEST_TEMPLATE}.stage2&quot;]
+  ./multisite.rb ${MANIFEST_TEMPLATE}.stage2 > $WORKSPACE/${MANIFEST_FINAL}
+<% else %>
+  # MULTISITE DISABLED
+  rake manifest:prepare[&quot;${MANIFEST_TEMPLATE}&quot;,&quot;${MANIFEST_FINAL}&quot;]
+<% end %>
 
 bosh -n deployment $WORKSPACE/${MANIFEST_FINAL}
 bosh -n deploy</command>
@@ -140,7 +142,7 @@ bosh -n deploy</command>
   </builders>
 <publishers>
 <hudson.tasks.BuildTrigger>
-<childProjects>vcap-yeti</childProjects>
+<childProjects></childProjects>
 <threshold>
 <name>SUCCESS</name>
 <ordinal>0</ordinal>
@@ -150,14 +152,6 @@ bosh -n deploy</command>
 </hudson.tasks.BuildTrigger>
 </publishers>
 <buildWrappers>
-    <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.21">
-      <deleteDirs>false</deleteDirs>
-      <cleanupParameter></cleanupParameter>
-      <externalDelete></externalDelete>
-    </hudson.plugins.ws__cleanup.PreBuildCleanup>
-    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.4.0">
-      <colorMapName>xterm</colorMapName>
-    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
 <ruby-proxy-object>
 <ruby-object ruby-class="Jenkins::Tasks::BuildWrapperProxy" pluginid="rbenv">
 <pluginid pluginid="rbenv" ruby-class="String">rbenv</pluginid>

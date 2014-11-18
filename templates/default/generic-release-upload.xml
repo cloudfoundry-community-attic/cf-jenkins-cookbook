@@ -1,7 +1,17 @@
+<%
+  cfg = @vars['_']
+  deployment = cfg['deployment']['config']
+  release_name = cfg['release']['name']
+  release = cfg['release']['config']
+  bosh_name = cfg['bosh']['name']
+  bosh = cfg['bosh']['config']
+  job_name = cfg['job_name']
+  job_desc = cfg['job_desc']
+%>
 <?xml version='1.0' encoding='UTF-8'?>
 <project>
   <actions/>
-  <description>Check for new final CF Services BOSH releases, upload to specified BOSH server, then trigger a deployment build.</description>
+  <description><%= job_desc %></description>
   <keepDependencies>false</keepDependencies>
   <properties/>
   <scm class="hudson.scm.NullSCM"/>
@@ -14,8 +24,8 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.plugins.copyartifact.CopyArtifact plugin="copyartifact@1.30">
-      <project>cf-services-contrib-release-tgz</project>
-      <filter>cf-services-contrib-release.tgz, contrib_services_release_version.txt</filter>
+      <project><%= release_name %>-release-tgz</project>
+      <filter>release.tgz, release_version.txt</filter>
       <target></target>
       <selector class="hudson.plugins.copyartifact.StatusBuildSelector"/>
       <doNotFingerprintArtifacts>false</doNotFingerprintArtifacts>
@@ -27,21 +37,21 @@ if ! gem spec bosh_cli > /dev/null 2&gt;&amp;1 ; then
   gem install bosh_cli bosh_cli_plugin_micro
 fi
 
-bosh -n target <%= @vars['inner_bosh']['director_ip'] %>
-bosh -n login <%= @vars['inner_bosh']['user'] %> <%= @vars['inner_bosh']['pass'] %>
+bosh -n target <%= bosh['director_ip'] %>
+bosh -n login <%= bosh['user'] %> <%= bosh['password'] %>
 
- bosh -n upload release $WORKSPACE/cf-services-contrib-release.tgz
+ bosh -n upload release $WORKSPACE/release.tgz
 </command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
     <hudson.tasks.ArtifactArchiver>
-      <artifacts>contrib_services_release_version.txt</artifacts>
+      <artifacts>release_version.txt</artifacts>
       <latestOnly>false</latestOnly>
       <allowEmptyArchive>false</allowEmptyArchive>
     </hudson.tasks.ArtifactArchiver>
     <hudson.tasks.BuildTrigger>
-      <childProjects>cf-release-final-deploy</childProjects>
+      <childProjects></childProjects>
       <threshold>
         <name>SUCCESS</name>
         <ordinal>0</ordinal>

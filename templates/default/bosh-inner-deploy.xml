@@ -1,3 +1,14 @@
+<%
+  cfg = @vars['_']
+  deployment_name = cfg['deployment']['name']
+  deployment = cfg['deployment']['config']
+  release_name = cfg['release']['name']
+  release = cfg['release']['config']
+  bosh_name = cfg['bosh']['name']
+  bosh = cfg['bosh']['config']
+  job_name = cfg['job_name']
+  outer_bosh = @vars['deployments']['config']['bosh-outer']
+%>
 <?xml version='1.0' encoding='UTF-8'?>
 <project>
   <actions/>
@@ -50,13 +61,13 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
  <hudson.plugins.copyartifact.CopyArtifact plugin="copyartifact@1.28">
-      <project>stemcell-inner-upload-<%= @vars['inner_bosh']['stemcell'] %></project>
+      <project>stemcell-<%= deployment['bosh'] %>-upload-<%= deployment['stemcell'] %></project>
       <filter>stemcell_version.txt</filter>
       <target>config</target>
       <selector class="hudson.plugins.copyartifact.StatusBuildSelector"/>
     </hudson.plugins.copyartifact.CopyArtifact>
     <hudson.plugins.copyartifact.CopyArtifact plugin="copyartifact@1.28">
-      <project>bosh-release-upload</project>
+      <project>bosh-release-outer-upload</project>
       <filter>release_version.txt</filter>
       <target>config</target>
       <selector class="hudson.plugins.copyartifact.StatusBuildSelector"/>
@@ -72,18 +83,18 @@ cd $WORKSPACE
 
 bundle update
 
-export DEPLOYMENT_NAME="<%= @vars['inner_bosh']['deployment_name'] %>"
-export DEPLOYMENT_DESC="<%= @vars['inner_bosh']['deployment_description'] %>"
-export BOSH_ROOT_DOMAIN=<%= @vars['inner_bosh']['root_domain'] %>
-export MANIFEST_TEMPLATE=<%= @vars['manifest_templates']['inner_bosh'] %>
+export DEPLOYMENT_NAME="<%= deployment['name'] %>"
+export DEPLOYMENT_DESC="<%= deployment['description'] %>"
+export BOSH_ROOT_DOMAIN=<%= deployment['root_domain'] %>
+export MANIFEST_TEMPLATE=<%= deployment['manifest_template'] %>
 export MANIFEST_FINAL=inner_bosh/<%= @vars['iaas'] %>/bosh.yml
-export OUTER_BOSH_HOST=<%= @vars['outer_bosh']['director_ip'] %>
-export OUTER_BOSH_USER=<%= @vars['outer_bosh']['user'] %>
-export OUTER_BOSH_PASS=<%= @vars['outer_bosh']['pass'] %>
+export OUTER_BOSH_HOST=<%= outer_bosh['director_ip'] %>
+export OUTER_BOSH_USER=<%= outer_bosh['user'] %>
+export OUTER_BOSH_PASS=<%= outer_bosh['password'] %>
 export OUTER_BOSH_UUID=$(bosh status | grep UUID | awk '{print $2}')
-export OUTER_ROOT_DOMAIN=<%= @vars['outer_bosh']['root_domain'] %>
-export BOSH_HOST=<%= @vars['inner_bosh']['director_ip'] %>
-export POWERDNS_HOST=<%= @vars['inner_bosh']['powerdns_ip'] %>
+export OUTER_ROOT_DOMAIN=<%= outer_bosh['root_domain'] %>
+export BOSH_HOST=<%= deployment['director_ip'] %>
+export POWERDNS_HOST=<%= deployment['powerdns_ip'] %>
 
 <%
   case @vars['iaas']
@@ -102,11 +113,11 @@ export POWERDNS_HOST=<%= @vars['inner_bosh']['powerdns_ip'] %>
     <%
   when 'vsphere'
     %>
-    export VSPHERE_CONNECTION='<%= JSON.generate(@vars['iaas_config']['connection']['inner_bosh']['vcenter']) %>'
+    export VSPHERE_CONNECTION='<%= JSON.generate(deployment['vcenter']) %>'
     RUBY_SCRIPT="require 'json'; data = YAML::load(STDIN.read); vconn = JSON.parse(ENV['VSPHERE_CONNECTION']); data['properties']['vcenter'] = vconn; File.open(ENV['MANIFEST_TEMPLATE'], 'w') { |file| file.write(data.to_yaml) }"
     cat ${MANIFEST_TEMPLATE} | ruby -ryaml -e "$RUBY_SCRIPT"    
 
-    export VSPHERE_NETWORKS='<%= JSON.generate(@vars['iaas_config']['networks']['inner_bosh']) %>'
+    export VSPHERE_NETWORKS='<%= JSON.generate(deployment['network']) %>'
     RUBY_SCRIPT="require 'json'; data = YAML::load(STDIN.read); vnetworks = JSON.parse(ENV['VSPHERE_NETWORKS']); data['networks'] = vnetworks; File.open(ENV['MANIFEST_TEMPLATE'], 'w') { |file| file.write(data.to_yaml) }"
     cat ${MANIFEST_TEMPLATE} | ruby -ryaml -e "$RUBY_SCRIPT"        
     <%

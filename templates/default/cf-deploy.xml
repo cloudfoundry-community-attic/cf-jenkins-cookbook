@@ -1,3 +1,14 @@
+<%
+  cfg = @vars['_']
+  deployment_name = cfg['deployment']['name']
+  deployment = cfg['deployment']['config']
+  release_name = cfg['release']['name']
+  release = cfg['release']['config']
+  bosh_name = cfg['bosh']['name']
+  bosh = cfg['bosh']['config']
+  job_name = cfg['job_name']
+  outer_bosh = @vars['deployments']['config']['bosh-outer']
+%>
 <?xml version='1.0' encoding='UTF-8'?>
 <project>
   <actions/>
@@ -50,21 +61,21 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.plugins.copyartifact.CopyArtifact plugin="copyartifact@1.28">
-      <project>stemcell-inner-upload-<%= @vars['cf-release']['stemcell'] %></project>
+      <project>stemcell-<%= deployment['bosh'] %>-upload-<%= deployment['stemcell'] %></project>
       <filter>stemcell_version.txt</filter>
       <target>config</target>
       <selector class="hudson.plugins.copyartifact.StatusBuildSelector"/>
     </hudson.plugins.copyartifact.CopyArtifact>
     <hudson.plugins.copyartifact.CopyArtifact plugin="copyartifact@1.28">
-      <project>cf-release-upload</project>
+      <project>cf-release-inner-upload</project>
       <filter>release_version.txt</filter>
       <target>config</target>
       <selector class="hudson.plugins.copyartifact.StatusBuildSelector"/>
     </hudson.plugins.copyartifact.CopyArtifact>
     <hudson.tasks.Shell>
       <command>
-bosh -n target <%= @vars['inner_bosh']['director_ip'] %>
-bosh -n login <%= @vars['inner_bosh']['user'] %> <%= @vars['inner_bosh']['pass'] %>
+bosh -n target <%= bosh['director_ip'] %>
+bosh -n login <%= bosh['user'] %> <%= bosh['password'] %>
 
 read STEMCELL_NAME STEMCELL_VERSION &lt;&lt;&lt;$(cat $WORKSPACE/config/stemcell_version.txt)
 read CF_RELEASE_NAME CF_RELEASE_VERSION &lt;&lt;&lt;$(cat $WORKSPACE/config/release_version.txt)
@@ -78,7 +89,7 @@ export INNER_BOSH_UUID=$(bosh status | grep UUID | awk '{print $2}')
 export CC_IP=<%= @vars['cloud_controller']['ip'] %>
 export CC_ROOT_DOMAIN=<%= @vars['cloud_controller']['root_domain'] %>
 export CF_PROTOCOL=<%= @vars['cloud_controller']['protocol'] %>
-export BOSH_ROOT_DOMAIN=<%= @vars['inner_bosh']['root_domain'] %>
+export BOSH_ROOT_DOMAIN=<%= bosh['root_domain'] %>
 
 export GOPATH=~/go
 export PATH=~/go/bin:/usr/local/go/bin:$PATH
@@ -110,15 +121,12 @@ cf_services_contrib_release = ENV['CONTRIB_SERVICES_RELEASE_VERSION']
 ip_address = ENV['CC_IP']
 common_password = "c1oudc0wc1oudc0w"
 root_domain = ENV['CC_ROOT_DOMAIN']
-deployment_name = "<%= @vars['cf_deploy']['deployment_name'] %>"
+deployment_name = "<%= deployment['name'] %>"
 bosh_root_domain = ENV['BOSH_ROOT_DOMAIN']
 %&gt;
 EOF
 
-./cloudfoundry/generate_manifest.sh <%= @vars['iaas'] %> <%= @vars['spiff_templates']['cf_release'] %> >> $WORKSPACE/$MANIFEST_TEMPLATE 
-
-bosh -n target <%= @vars['inner_bosh']['director_ip'] %>
-bosh -n login <%= @vars['inner_bosh']['user'] %> <%= @vars['inner_bosh']['pass'] %>
+./cloudfoundry/generate_manifest.sh <%= @vars['iaas'] %> <%= deployment['spiff_templates'] %> >> $WORKSPACE/$MANIFEST_TEMPLATE 
 
 rake manifest:prepare[&quot;${MANIFEST_TEMPLATE}&quot;,&quot;${MANIFEST_TEMPLATE}.stage2&quot;]
 
