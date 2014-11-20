@@ -67,7 +67,7 @@
       <selector class="hudson.plugins.copyartifact.StatusBuildSelector"/>
     </hudson.plugins.copyartifact.CopyArtifact>
     <hudson.plugins.copyartifact.CopyArtifact plugin="copyartifact@1.28">
-      <project>cf-services-contrib-release-upload</project>
+      <project><%= release_name %>-release-<%= deployment['bosh'] %>-upload</project>
       <filter>release_version.txt</filter>
       <target>config</target>
       <selector class="hudson.plugins.copyartifact.StatusBuildSelector"/>
@@ -78,7 +78,7 @@ bosh -n target <%= bosh['director_ip'] %>
 bosh -n login <%= bosh['user'] %> <%= bosh['password'] %>
 
 read STEMCELL_NAME STEMCELL_VERSION &lt;&lt;&lt;$(cat $WORKSPACE/config/stemcell_version.txt)
-read CF_RELEASE_NAME CF_RELEASE_VERSION &lt;&lt;&lt;$(cat $WORKSPACE/config/contrib_services_release_version.txt)
+read CF_RELEASE_NAME CF_RELEASE_VERSION &lt;&lt;&lt;$(cat $WORKSPACE/config/release_version.txt)
 export STEMCELL_NAME
 export STEMCELL_VERSION
 export CF_RELEASE_NAME
