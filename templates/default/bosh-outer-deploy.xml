@@ -1,5 +1,7 @@
 <%
   cfg = @vars['_']
+  datacenter = @vars['deployments']['datacenter']
+  environment = @vars['deployments']['environment']
   deployment_name = cfg['deployment']['name']
   deployment = cfg['deployment']['config']
   release_name = cfg['release']['name']
@@ -53,42 +55,22 @@ export BOSH_ROOT_DOMAIN=<%= deployment['root_domain'] %>
 export BOSH_DNS_RECURSOR=<%= deployment['dns_recursor'] %>
 export OUTER_BOSH_IP=<%= deployment['director_ip'] %>
 export MANIFEST_TEMPLATE=<%= deployment['manifest_template'] %>
-export MANIFEST_FINAL=outer_bosh/<%= @vars['iaas'] %>/micro_bosh.yml
+export MANIFEST_FINAL=deployments/<%= deployment_name %>/<%= @vars['iaas'] %>/micro_bosh.yml
 
-<%
-  case @vars['iaas']
-  when 'openstack'
-    %>
-    export OS_AUTH_URL=<%= @vars['openstack']['auth_url'] %>
-    export OS_USERNAME=<%= @vars['openstack']['user'] %>
-    export OS_PASSWORD=<%= @vars['openstack']['api_key'] %>
-    export OS_TENANT=<%= @vars['openstack']['tenant'] %>
-    export KEY_NAME=outerbosh
-    export PRIVATE_KEY_PATH=${WORKSPACE}/${KEY_NAME}.pem
-    ssh-keygen -t rsa -f ${PRIVATE_KEY_PATH} -q -N &quot;&quot;
-    nova keypair-delete ${KEY_NAME} | exit 0
-    nova keypair-add --pub_key ${WORKSPACE}/outerbosh.pem.pub ${KEY_NAME} | exit 0
-    <%
-  when 'vsphere'
-    %>
-    export VSPHERE_CONNECTION='<%= JSON.generate(deployment['vcenters']) %>'
-    export VSPHERE_NETWORKS='<%= JSON.generate(deployment['network']) %>'
-    RUBY_SCRIPT="require 'json'; data = YAML::load(STDIN.read); vconn = JSON.parse(ENV['VSPHERE_CONNECTION']); vnet = JSON.parse(ENV['VSPHERE_NETWORKS']); data['cloud']['properties']['vcenters'] = vconn; data['network'] = vnet; File.open(ENV['MANIFEST_TEMPLATE'], 'w') { |file| file.write(data.to_yaml) }"
-    cat ${MANIFEST_TEMPLATE} | ruby -ryaml -e "$RUBY_SCRIPT"
-    <%
-  end
-%>
+export GOPATH=~/go
+export PATH=~/go/bin:/usr/local/go/bin:$PATH
+go get -v github.com/cloudfoundry-incubator/spiff
 
-rake manifest:prepare[&quot;${MANIFEST_TEMPLATE}&quot;,&quot;${MANIFEST_FINAL}&quot;]
+rake manifest:create[&quot;<%= deployment_name %>&quot;,&quot;live&quot;,&quot;<%= datacenter %>&quot;,&quot;<%= environment %>&quot;,&quot;${MANIFEST_FINAL}&quot;]
 
-cd $WORKSPACE/outer_bosh
+cd $WORKSPACE/deployments/<%= deployment_name %>
 bundle exec bosh -n micro deployment <%= @vars['iaas'] %>
 bundle exec bosh -n micro deploy $WORKSPACE/stemcell.tgz --update-if-exists</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
     <hudson.tasks.ArtifactArchiver>
-    <artifacts>outer_bosh/bosh-deployments.yml</artifacts>
+    <artifacts>deployments/<%= deployment_name %>/bosh-deployments.yml, deployments/<%= deployment_name %>/manifest.yml</artifacts>
     <latestOnly>false</latestOnly>
     <allowEmptyArchive>false</allowEmptyArchive>
     <onlyIfSuccessful>true</onlyIfSuccessful>

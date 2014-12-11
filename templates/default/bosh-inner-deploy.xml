@@ -1,5 +1,7 @@
 <%
   cfg = @vars['_']
+  datacenter = @vars['deployments']['datacenter']
+  environment = @vars['deployments']['environment']
   deployment_name = cfg['deployment']['name']
   deployment = cfg['deployment']['config']
   release_name = cfg['release']['name']
@@ -81,50 +83,20 @@ export RELEASE_NAME
 export RELEASE_VERSION
 cd $WORKSPACE 
 
+export GOPATH=~/go
+export PATH=~/go/bin:/usr/local/go/bin:$PATH
+go get -v github.com/cloudfoundry-incubator/spiff
+
 bundle update
 
-export DEPLOYMENT_NAME="<%= deployment['name'] %>"
-export DEPLOYMENT_DESC="<%= deployment['description'] %>"
-export BOSH_ROOT_DOMAIN=<%= deployment['root_domain'] %>
-export MANIFEST_TEMPLATE=<%= deployment['manifest_template'] %>
-export MANIFEST_FINAL=inner_bosh/<%= @vars['iaas'] %>/bosh.yml
+export MANIFEST_FINAL=deployments/<%= deployment_name %>/<%= @vars['iaas'] %>/bosh.yml
 export OUTER_BOSH_HOST=<%= outer_bosh['director_ip'] %>
 export OUTER_BOSH_USER=<%= outer_bosh['user'] %>
 export OUTER_BOSH_PASS=<%= outer_bosh['password'] %>
 export OUTER_BOSH_UUID=$(bosh status | grep UUID | awk '{print $2}')
 export OUTER_ROOT_DOMAIN=<%= outer_bosh['root_domain'] %>
-export BOSH_HOST=<%= deployment['director_ip'] %>
-export POWERDNS_HOST=<%= deployment['powerdns_ip'] %>
 
-<%
-  case @vars['iaas']
-  when 'openstack'
-    %>
-    export OS_AUTH_URL=<%= @vars['openstack']['auth_url'] %>
-    export OS_USERNAME=<%= @vars['openstack']['user'] %>
-    export OS_PASSWORD=<%= @vars['openstack']['api_key'] %>
-    export OS_TENANT=<%= @vars['openstack']['tenant'] %>
-    export BOSH_DYNAMIC_NET_ID=<%= @vars['inner_bosh']['net_id'] %>
-    export KEY_NAME=outerbosh
-    export PRIVATE_KEY_PATH=${WORKSPACE}/${KEY_NAME}.pem    
-    ssh-keygen -t rsa -f ${PRIVATE_KEY_PATH} -q -N &quot;&quot;
-    nova keypair-delete ${KEY_NAME} | exit 0
-    nova keypair-add --pub_key ${WORKSPACE}/outerbosh.pem.pub ${KEY_NAME} | exit 0    
-    <%
-  when 'vsphere'
-    %>
-    export VSPHERE_CONNECTION='<%= JSON.generate(deployment['vcenter']) %>'
-    RUBY_SCRIPT="require 'json'; data = YAML::load(STDIN.read); vconn = JSON.parse(ENV['VSPHERE_CONNECTION']); data['properties']['vcenter'] = vconn; File.open(ENV['MANIFEST_TEMPLATE'], 'w') { |file| file.write(data.to_yaml) }"
-    cat ${MANIFEST_TEMPLATE} | ruby -ryaml -e "$RUBY_SCRIPT"    
-
-    export VSPHERE_NETWORKS='<%= JSON.generate(deployment['network']) %>'
-    RUBY_SCRIPT="require 'json'; data = YAML::load(STDIN.read); vnetworks = JSON.parse(ENV['VSPHERE_NETWORKS']); data['networks'] = vnetworks; File.open(ENV['MANIFEST_TEMPLATE'], 'w') { |file| file.write(data.to_yaml) }"
-    cat ${MANIFEST_TEMPLATE} | ruby -ryaml -e "$RUBY_SCRIPT"        
-    <%
-  end 
-%>
-
-rake manifest:prepare[&quot;${MANIFEST_TEMPLATE}&quot;,&quot;${MANIFEST_FINAL}&quot;]
+rake manifest:create[&quot;<%= deployment_name %>&quot;,&quot;live&quot;,&quot;<%= datacenter %>&quot;,&quot;<%= environment %>&quot;,&quot;${MANIFEST_FINAL}&quot;]
 
 bundle exec bosh -n target $OUTER_BOSH_HOST 
 bundle exec bosh -n login $OUTER_BOSH_USER $OUTER_BOSH_PASS 

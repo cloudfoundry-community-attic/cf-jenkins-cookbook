@@ -1,5 +1,7 @@
 <%
   cfg = @vars['_']
+  datacenter = @vars['deployments']['datacenter']
+  environment = @vars['deployments']['environment']
   deployment_name = cfg['deployment']['name']
   deployment = cfg['deployment']['config']
   release_name = cfg['release']['name']
@@ -83,61 +85,23 @@ export STEMCELL_NAME
 export STEMCELL_VERSION
 export RELEASE_NAME
 export RELEASE_VERSION
-export MANIFEST_TEMPLATE=<%= deployment_name %>/ci.yml.erb
-export MANIFEST_FINAL=<%= deployment_name %>/manifest.yml
-export BOSH_UUID=$(bosh status | grep UUID | awk '{print $2}')
-export CC_IP=<%= @vars['cloud_controller']['ip'] %>
-export CC_ROOT_DOMAIN=<%= @vars['cloud_controller']['root_domain'] %>
-export CF_PROTOCOL=<%= @vars['cloud_controller']['protocol'] %>
-export BOSH_ROOT_DOMAIN=<%= bosh['root_domain'] %>
+export MANIFEST_FINAL=deployments/<%= deployment_name %>/<%= @vars['iaas'] %>/manifest.yml
+export DIRECTOR_UUID=$(bosh status | grep UUID | awk '{print $2}')
+export DEPLOYMENT_NAME=<%= deployment_name %>
 
 export GOPATH=~/go
 export PATH=~/go/bin:/usr/local/go/bin:$PATH
 go get -v github.com/cloudfoundry-incubator/spiff
 
-<%
-  case @vars['iaas']
-  when 'openstack'
-    %>
-    export OS_AUTH_URL=<%= @vars['openstack']['auth_url'] %>
-    export OS_USERNAME=<%= @vars['openstack']['user'] %>
-    export OS_PASSWORD=<%= @vars['openstack']['api_key'] %>
-    export OS_TENANT=<%= @vars['openstack']['tenant'] %>
-    <%
-  when 'vsphere'
-    %>
-    <%
-  end 
-%>
-
 cd $WORKSPACE
 
-cat &lt;&lt; EOF &gt; $WORKSPACE/$MANIFEST_TEMPLATE
-&lt;%
-director_uuid = ENV['BOSH_UUID']
-protocol = ENV['CF_PROTOCOL']
-release_version = ENV['RELEASE_VERSION']
-ip_address = ENV['CC_IP']
-common_password = "c1oudc0wc1oudc0w"
-root_domain = ENV['CC_ROOT_DOMAIN']
-deployment_name = "<%= deployment['name'] %>"
-bosh_root_domain = ENV['BOSH_ROOT_DOMAIN']
-release_name = ENV['RELEASE_NAME']
-release_version = ENV['RELEASE_VERSION']
-stemcell_name = ENV['STEMCELL_NAME']
-stemcell_version = ENV['STEMCELL_VERSION']
-%&gt;
-EOF
+<% manifest_yml = deployment['multisite'] ? '${MANIFEST_FINAL}.stage2' : '${MANIFEST_FINAL}' %>
 
-./<%= deployment_name %>/generate_manifest.sh <%= @vars['iaas'] %> <%= deployment['spiff_templates'] %> >> $WORKSPACE/$MANIFEST_TEMPLATE 
+rake manifest:create[<%= deployment_name %>,live,<%= datacenter %>,<%= environment %>,<%= manifest_yml %>]
 
-<% if cfg['multisite'] %>
+<% if deployment['multisite'] %>
   # MULTISITE ENABLED
-  rake manifest:prepare[&quot;${MANIFEST_TEMPLATE}&quot;,&quot;${MANIFEST_TEMPLATE}.stage2&quot;]
-  ./multisite.rb ${MANIFEST_TEMPLATE}.stage2 > $WORKSPACE/${MANIFEST_FINAL}
-<% else %>
-  # MULTISITE DISABLED
-  rake manifest:prepare[&quot;${MANIFEST_TEMPLATE}&quot;,&quot;${MANIFEST_FINAL}&quot;]
+  ./multisite.rb <%= manifest_yml %> > $WORKSPACE/${MANIFEST_FINAL}
 <% end %>
 
 bosh -n deployment $WORKSPACE/${MANIFEST_FINAL}
