@@ -89,17 +89,18 @@ go get -v github.com/cloudfoundry-incubator/spiff
 
 bundle update
 
-export MANIFEST_FINAL=deployments/<%= deployment_name %>/<%= @vars['iaas'] %>/bosh.yml
 export OUTER_BOSH_HOST=<%= outer_bosh['director_ip'] %>
 export OUTER_BOSH_USER=<%= outer_bosh['user'] %>
 export OUTER_BOSH_PASS=<%= outer_bosh['password'] %>
+bundle exec bosh -n target $OUTER_BOSH_HOST
+bundle exec bosh -n login $OUTER_BOSH_USER $OUTER_BOSH_PASS
+
+export MANIFEST_FINAL=deployments/<%= deployment_name %>/<%= @vars['iaas'] %>/bosh.yml
 export OUTER_BOSH_UUID=$(bosh status | grep UUID | awk '{print $2}')
 export OUTER_ROOT_DOMAIN=<%= outer_bosh['root_domain'] %>
 
 rake manifest:create[&quot;<%= deployment_name %>&quot;,&quot;live&quot;,&quot;<%= datacenter %>&quot;,&quot;<%= environment %>&quot;,&quot;${MANIFEST_FINAL}&quot;]
 
-bundle exec bosh -n target $OUTER_BOSH_HOST 
-bundle exec bosh -n login $OUTER_BOSH_USER $OUTER_BOSH_PASS 
 bundle exec bosh -n deployment $WORKSPACE/${MANIFEST_FINAL}
 bundle exec bosh -n deploy</command>
     </hudson.tasks.Shell>
