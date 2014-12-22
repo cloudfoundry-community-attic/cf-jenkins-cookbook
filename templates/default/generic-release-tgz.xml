@@ -67,7 +67,7 @@ EOF
 bosh -n create release --with-tarball --force
 
 RELEASE_PATH=${WORKSPACE}/dev_releases
-RELEASE_YML=`ls -t $RELEASE_PATH/<%= release_config['dev_name'] %>/*.yml | tee | head -1`
+RELEASE_YML=`ls -t $RELEASE_PATH/<%= release_config['dev_name'] %>/*.yml | grep -v index.yml | tee | head -1`
 
 <% else %>
 
