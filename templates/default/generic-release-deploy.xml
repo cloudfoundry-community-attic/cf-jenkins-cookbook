@@ -85,7 +85,7 @@ export STEMCELL_NAME
 export STEMCELL_VERSION
 export RELEASE_NAME
 export RELEASE_VERSION
-export MANIFEST_FINAL=deployments/<%= deployment_name %>/<%= @vars['iaas'] %>/manifest.yml
+export MANIFEST_FINAL=config/manifest.yml
 export DIRECTOR_UUID=$(bosh status | grep UUID | awk '{print $2}')
 export DEPLOYMENT_NAME=<%= deployment_name %>
 
@@ -95,14 +95,7 @@ go get -v github.com/cloudfoundry-incubator/spiff
 
 cd $WORKSPACE
 
-<% manifest_yml = deployment['multisite'] ? '${MANIFEST_FINAL}.stage2' : '${MANIFEST_FINAL}' %>
-
-rake manifest:create[<%= deployment_name %>,live,<%= datacenter %>,<%= environment %>,<%= manifest_yml %>]
-
-<% if deployment['multisite'] %>
-  # MULTISITE ENABLED
-  ./multisite.rb <%= manifest_yml %> > $WORKSPACE/${MANIFEST_FINAL}
-<% end %>
+rake manifest:create[<%= deployment_name %>,live,<%= datacenter %>,<%= environment %>,"${MANIFEST_FINAL}"]
 
 bosh -n deployment $WORKSPACE/${MANIFEST_FINAL}
 bosh -n deploy</command>
